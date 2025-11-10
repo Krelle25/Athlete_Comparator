@@ -45,8 +45,9 @@ public class StatsService {
             }
         }
         
-        // For type=0, fetch both regular season and playoffs for each season
+        // Fetch stats for each season based on requested type
         if (type == 0) {
+            // Fetch both regular season and playoffs
             for (int season : seasons) {
                 // Try regular season (type 2)
                 try {
@@ -69,29 +70,15 @@ public class StatsService {
                 }
             }
         } else {
-            // Original logic for specific type (2 or 3)
-            for (JsonNode entry : entries) {
-                int season = tail(entry.path("season"));
-                if (season <= 0) continue;
-
-                JsonNode statsBlocks = entry.path("statistics");
-                if (!statsBlocks.isArray()) continue;
-
-                for (JsonNode block : statsBlocks) {
-                    String blockType = block.path("type").asText("");
-                    if (!"total".equalsIgnoreCase(blockType)) continue;
-
-                    String ref = block.path("statistics").path("$ref")
-                            .asText(block.path("statistics").path("href").asText(""));
-                    if (ref.isBlank()) continue;
-
-                    int seasonType = typeFromRef(ref);
-                    if (type != 0 && seasonType != type) continue;
-
-                    JsonNode avg = espnStatsClient.getByAbsoluteUrl(ref);
-                    if (avg == null) continue;
-
-                    out.add(mapAveragesToDto(avg, season, seasonType));
+            // Fetch specific type (2 or 3) for all seasons
+            for (int season : seasons) {
+                try {
+                    JsonNode stats = espnStatsClient.getSeasonAverage(athleteID, season, type);
+                    if (stats != null && !stats.path("splits").isMissingNode()) {
+                        out.add(mapAveragesToDto(stats, season, type));
+                    }
+                } catch (Exception e) {
+                    log.debug("No type {} stats for season {}: {}", type, season, e.getMessage());
                 }
             }
         }
