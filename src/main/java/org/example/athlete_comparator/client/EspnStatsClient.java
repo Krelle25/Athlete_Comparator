@@ -31,19 +31,27 @@ public class EspnStatsClient {
 
     public JsonNode getStatisticsLog(long athleteID) {
         String url = coreBase + "/athletes/" + athleteID + "/statisticslog?region=us&lang=en";
-        return restClient.get()
-                .uri(url)
-                .retrieve()
-                .body(JsonNode.class);
+        try {
+            return restClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public JsonNode getSeasonAverage(long athleteID, int season, int type) {
         String url = coreBase + "/seasons/" + season + "/types/" + type
                 + "/athletes/" + athleteID + "/statistics/0?region=us&lang=en";
-        return restClient.get()
-                .uri(url)
-                .retrieve()
-                .body(JsonNode.class);
+        try {
+            return restClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public JsonNode getByAbsoluteUrl(String url) {
@@ -51,5 +59,17 @@ public class EspnStatsClient {
                 .uri(url)
                 .retrieve()
                 .body(JsonNode.class);
+    }
+
+    public JsonNode getAthleteInfo(long athleteID) {
+        String url = coreBase + "/athletes/" + athleteID + "?region=us&lang=en";
+        try {
+            return restClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

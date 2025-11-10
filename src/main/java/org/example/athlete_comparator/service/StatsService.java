@@ -27,6 +27,12 @@ public class StatsService {
 
     public List<SeasonStatDTO> getSeasonStats(long athleteID, int type) {
         JsonNode root = espnStatsClient.getStatisticsLog(athleteID);
+        
+        if (root == null) {
+            log.warn("Failed to fetch statisticslog for athlete {}", athleteID);
+            return List.of();
+        }
+        
         JsonNode entries = root.path("entries");
 
         if (!entries.isArray() || entries.isEmpty()) {
