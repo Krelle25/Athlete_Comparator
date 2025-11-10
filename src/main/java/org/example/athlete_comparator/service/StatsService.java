@@ -3,13 +3,9 @@ package org.example.athlete_comparator.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.example.athlete_comparator.client.EspnStatsClient;
 import org.example.athlete_comparator.dto.SeasonStatDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,7 +14,7 @@ public class StatsService {
 
     private final EspnStatsClient espnStatsClient;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(StatsService.class);
-    private static final Pattern TAIL_INT = Pattern.compile(".*/(\\d+)$");
+    private static final Pattern TAIL_INT = Pattern.compile(".*/(\\d+)(?:\\?.*)?$");
     private static final Pattern TYPES_INT = Pattern.compile(".*/types/(\\d+)/.*");
 
     public StatsService(EspnStatsClient espnStatsClient) {
@@ -38,40 +34,69 @@ public class StatsService {
             return List.of();
         }
 
-        log.info("entries.size={}", entries.size());
         List<SeasonStatDTO> out = new ArrayList<>();
-
+        
+        // Collect unique seasons
+        Set<Integer> seasons = new HashSet<>();
         for (JsonNode entry : entries) {
             int season = tail(entry.path("season"));
-            if (season <= 0) { log.debug("skip: bad season ref {}", entry.path("season")); continue; }
-
-            JsonNode statsBlocks = entry.path("statistics");
-            if (!statsBlocks.isArray()) { log.debug("skip: no statistics array for season {}", season); continue; }
-
-            for (JsonNode block : statsBlocks) {
-                String blockType = block.path("type").asText("");
-                if (!"total".equalsIgnoreCase(blockType)) { log.debug("skip: block.type={} (want total)", blockType); continue; }
-
-                String ref = block.path("statistics").path("$ref")
-                        .asText(block.path("statistics").path("href").asText(""));
-                if (ref.isBlank()) { log.debug("skip: empty ref for season {}", season); continue; }
-
-                int seasonType = typeFromRef(ref); // matcher .../types/{n}/...
-                if (type != 0 && seasonType != type) {
-                    log.debug("skip: filtered by type (got {}, want {})", seasonType, type);
-                    continue;
+            if (season > 0) {
+                seasons.add(season);
+            }
+        }
+        
+        // For type=0, fetch both regular season and playoffs for each season
+        if (type == 0) {
+            for (int season : seasons) {
+                // Try regular season (type 2)
+                try {
+                    JsonNode regularStats = espnStatsClient.getSeasonAverage(athleteID, season, 2);
+                    if (regularStats != null && !regularStats.path("splits").isMissingNode()) {
+                        out.add(mapAveragesToDto(regularStats, season, 2));
+                    }
+                } catch (Exception e) {
+                    log.debug("No regular season stats for season {}: {}", season, e.getMessage());
                 }
+                
+                // Try playoffs (type 3)
+                try {
+                    JsonNode playoffStats = espnStatsClient.getSeasonAverage(athleteID, season, 3);
+                    if (playoffStats != null && !playoffStats.path("splits").isMissingNode()) {
+                        out.add(mapAveragesToDto(playoffStats, season, 3));
+                    }
+                } catch (Exception e) {
+                    log.debug("No playoff stats for season {}: {}", season, e.getMessage());
+                }
+            }
+        } else {
+            // Original logic for specific type (2 or 3)
+            for (JsonNode entry : entries) {
+                int season = tail(entry.path("season"));
+                if (season <= 0) continue;
 
-                log.info("Fetching averages: season={}, type={}, ref={}", season, seasonType, ref);
-                JsonNode avg = espnStatsClient.getByAbsoluteUrl(ref);
-                if (avg == null) { log.debug("skip: avg null (ref={})", ref); continue; }
+                JsonNode statsBlocks = entry.path("statistics");
+                if (!statsBlocks.isArray()) continue;
 
-                out.add(mapAveragesToDto(avg, season, seasonType));
+                for (JsonNode block : statsBlocks) {
+                    String blockType = block.path("type").asText("");
+                    if (!"total".equalsIgnoreCase(blockType)) continue;
+
+                    String ref = block.path("statistics").path("$ref")
+                            .asText(block.path("statistics").path("href").asText(""));
+                    if (ref.isBlank()) continue;
+
+                    int seasonType = typeFromRef(ref);
+                    if (type != 0 && seasonType != type) continue;
+
+                    JsonNode avg = espnStatsClient.getByAbsoluteUrl(ref);
+                    if (avg == null) continue;
+
+                    out.add(mapAveragesToDto(avg, season, seasonType));
+                }
             }
         }
 
         out.sort(Comparator.comparingInt(SeasonStatDTO::getSeason));
-        log.info("Returning {} rows for athlete {}", out.size(), athleteID);
         return out;
     }
 
@@ -92,20 +117,20 @@ public class StatsService {
         dto.setType(type);
 
         dto.setGp((int) r(stat(avg, "gamesPlayed")));
-        dto.setMin(stat(avg, "minutesPerGame"));
-        dto.setPts(stat(avg, "pointsPerGame"));
-        dto.setAst(stat(avg, "assistsPerGame"));
-        dto.setReb(stat(avg, "reboundsPerGame"));
-        dto.setStl(stat(avg, "stealsPerGame"));
-        dto.setBlk(stat(avg, "blocksPerGame"));
-        dto.setTov(stat(avg, "turnoversPerGame"));
+        dto.setMin(stat(avg, "avgMinutes"));
+        dto.setPts(stat(avg, "avgPoints"));
+        dto.setAst(stat(avg, "avgAssists"));
+        dto.setReb(stat(avg, "avgRebounds"));
+        dto.setStl(stat(avg, "avgSteals"));
+        dto.setBlk(stat(avg, "avgBlocks"));
+        dto.setTov(stat(avg, "avgTurnovers"));
 
-        dto.setFgm(stat(avg, "fieldGoalsMadePerGame"));
-        dto.setFga(stat(avg, "fieldGoalsAttemptedPerGame"));
-        dto.setTpm(stat(avg, "threePointFieldGoalsMadePerGame"));
-        dto.setTpa(stat(avg, "threePointFieldGoalsAttemptedPerGame"));
-        dto.setFtm(stat(avg, "freeThrowsMadePerGame"));
-        dto.setFta(stat(avg, "freeThrowsAttemptedPerGame"));
+        dto.setFgm(stat(avg, "avgFieldGoalsMade"));
+        dto.setFga(stat(avg, "avgFieldGoalsAttempted"));
+        dto.setTpm(stat(avg, "avgThreePointFieldGoalsMade"));
+        dto.setTpa(stat(avg, "avgThreePointFieldGoalsAttempted"));
+        dto.setFtm(stat(avg, "avgFreeThrowsMade"));
+        dto.setFta(stat(avg, "avgFreeThrowsAttempted"));
 
         // afledte
         double fga = nz(dto.getFga()), fta = nz(dto.getFta());
@@ -120,11 +145,17 @@ public class StatsService {
             dto.setPer75Ast(nz(dto.getAst()) / mp * 75.0);
             dto.setPer75Reb(nz(dto.getReb()) / mp * 75.0);
         }
+        
         return dto;
     }
 
     private static double stat(JsonNode root, String name) {
-        for (JsonNode cat : root.path("categories")) {
+        JsonNode categories = root.path("splits").path("categories");
+        if (categories.isMissingNode()) {
+            categories = root.path("categories");
+        }
+        
+        for (JsonNode cat : categories) {
             for (JsonNode st : cat.path("stats")) {
                 if (name.equalsIgnoreCase(st.path("name").asText(""))) {
                     JsonNode v = st.path("value");
