@@ -60,8 +60,6 @@ public class OpenAiClient {
 
             requestBody.set("messages", messages);
 
-            log.debug("Sending request to OpenAI: {}", requestBody);
-
             JsonNode response = restClient.post()
                     .body(requestBody)
                     .retrieve()

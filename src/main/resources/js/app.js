@@ -56,14 +56,8 @@ function displaySearchResults(players, resultsDiv) {
         resultsDiv.classList.add('active');
         return;
     }
-
-    console.log('Search results:', players); // Debug log
     
     resultsDiv.innerHTML = players.map(player => {
-        console.log('Player object:', player); // Debug each player
-        console.log('Player.ID:', player.ID, 'Player.id:', player.id, 'Player keys:', Object.keys(player));
-        
-        // Try both ID and id (case variations)
         const playerId = player.ID || player.id || player.athleteId;
         
         return `
@@ -138,38 +132,26 @@ async function comparePlayers() {
 
     const statsType = getSelectedStatsType();
     
-    console.log('Comparing players:', {
-        playerA: selectedPlayerA,
-        playerB: selectedPlayerB,
-        statsType: statsType
-    });
-    
-    // Show loading
     loading.classList.remove('hidden');
     comparisonResults.classList.add('hidden');
     compareBtn.disabled = true;
 
     try {
-        const requestBody = {
-            aID: selectedPlayerA.id,
-            bID: selectedPlayerB.id,
-            type: statsType
-        };
-        
-        console.log('Request body:', requestBody);
-        
         const response = await fetch(`${API_BASE}/compare`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({
+                aID: selectedPlayerA.id,
+                bID: selectedPlayerB.id,
+                type: statsType
+            })
         });
 
         if (!response.ok) throw new Error('Comparison failed');
         
         const result = await response.json();
-        console.log('Comparison result:', result);
         displayComparisonResults(result);
     } catch (error) {
         console.error('Comparison error:', error);
@@ -224,20 +206,14 @@ searchInputB.addEventListener('input', debounce((e) => {
 resultsA.addEventListener('click', (e) => {
     const item = e.target.closest('.result-item');
     if (item) {
-        const id = item.dataset.playerId;
-        const name = item.dataset.playerName;
-        console.log('Selected Player A - ID:', id, 'Name:', name, 'Item:', item);
-        selectPlayer(id, name, 'A');
+        selectPlayer(item.dataset.playerId, item.dataset.playerName, 'A');
     }
 });
 
 resultsB.addEventListener('click', (e) => {
     const item = e.target.closest('.result-item');
     if (item) {
-        const id = item.dataset.playerId;
-        const name = item.dataset.playerName;
-        console.log('Selected Player B - ID:', id, 'Name:', name, 'Item:', item);
-        selectPlayer(id, name, 'B');
+        selectPlayer(item.dataset.playerId, item.dataset.playerName, 'B');
     }
 });
 

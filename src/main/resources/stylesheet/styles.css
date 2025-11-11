@@ -5,9 +5,9 @@
 }
 
 :root {
-    --primary-color: #1e3a8a;
-    --secondary-color: #3b82f6;
-    --accent-color: #f59e0b;
+    --primary-color: #00e1ff;
+    --secondary-color: #ff8800;
+    --accent-color: #ff0000;
     --success-color: #10b981;
     --background: #f8fafc;
     --card-bg: #ffffff;
@@ -20,7 +20,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00e1ff 50%, #ff8800 50%);
     min-height: 100vh;
     color: var(--text-primary);
     padding: 20px;
@@ -47,7 +47,6 @@ header h1 {
 
 .subtitle {
     font-size: 1.2rem;
-    opacity: 0.9;
 }
 
 /* Main Content */
@@ -85,7 +84,7 @@ main {
 }
 
 .player-box h2 {
-    color: var(--primary-color);
+    color: var(--text-primary);
     margin-bottom: 15px;
     font-size: 1.5rem;
 }
@@ -166,13 +165,13 @@ main {
     padding: 15px;
     background: white;
     border-radius: 8px;
-    border-left: 4px solid var(--success-color);
+    border-left: 4px solid var(--primary-color);
     animation: slideIn 0.3s ease-out;
 }
 
 .selected-info .player-name {
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--text-secondary);
 }
 
 .selected-info .remove-btn {
@@ -201,7 +200,7 @@ main {
 }
 
 .vs-divider span {
-    background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+    background: var(--accent-color);
     color: white;
     font-weight: bold;
     font-size: 1.5rem;
@@ -244,7 +243,7 @@ main {
     max-width: 400px;
     margin: 0 auto;
     padding: 16px 32px;
-    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    background: var(--primary-color);
     color: white;
     border: none;
     border-radius: 8px;
@@ -296,7 +295,7 @@ main {
 
 .comparison-results h2 {
     text-align: center;
-    color: var(--primary-color);
+    color: var(--text-primary);
     margin-bottom: 30px;
     font-size: 2rem;
 }
@@ -332,7 +331,7 @@ main {
     background: var(--background);
     padding: 20px;
     border-radius: 12px;
-    border-left: 4px solid var(--secondary-color);
+    border-left: 4px solid var(--primary-color);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -343,11 +342,11 @@ main {
 
 .analysis-card.conclusion {
     grid-column: 1 / -1;
-    border-left-color: var(--accent-color);
+    border-left-color: var(--success-color);
 }
 
 .analysis-card h3 {
-    color: var(--primary-color);
+    color: var(--text-primary);
     margin-bottom: 12px;
     font-size: 1.2rem;
 }
@@ -392,7 +391,6 @@ footer {
     text-align: center;
     color: white;
     margin-top: 40px;
-    opacity: 0.8;
 }
 
 /* Animations */
