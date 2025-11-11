@@ -54,13 +54,11 @@ public class EspnStatsClient {
         }
     }
 
-    public JsonNode getByAbsoluteUrl(String url) {
-        return restClient.get()
-                .uri(url)
-                .retrieve()
-                .body(JsonNode.class);
-    }
-
+    /**
+     * Fetches athlete information including name, team, and other details
+     * @param athleteID The unique ESPN athlete ID
+     * @return JsonNode containing athlete information, or null if request fails
+     */
     public JsonNode getAthleteInfo(long athleteID) {
         String url = coreBase + "/athletes/" + athleteID + "?region=us&lang=en";
         try {
