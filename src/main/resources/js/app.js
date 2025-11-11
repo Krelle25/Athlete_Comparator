@@ -15,6 +15,9 @@ const selectedB = document.getElementById('selectedB');
 const compareBtn = document.getElementById('compareBtn');
 const loading = document.getElementById('loading');
 const comparisonResults = document.getElementById('comparisonResults');
+const playerStats = document.getElementById('playerStats');
+const statsA = document.getElementById('statsA');
+const statsB = document.getElementById('statsB');
 
 // Debounce function for search
 function debounce(func, wait) {
@@ -59,11 +62,18 @@ function displaySearchResults(players, resultsDiv) {
     
     resultsDiv.innerHTML = players.map(player => {
         const playerId = player.ID || player.id || player.athleteId;
+        const headshotUrl = player.headshotUrl || '';
+        const team = player.team || '';
+        const position = player.position || '';
         
         return `
-            <div class="result-item" data-player-id="${playerId}" data-player-name="${player.name}">
-                <strong>${player.name}</strong>
-                ${player.position ? `<span class="position">${player.position}</span>` : ''}
+            <div class="result-item" data-player-id="${playerId}" data-player-name="${player.name}" data-headshot-url="${headshotUrl}" data-team="${team}" data-position="${position}">
+                ${headshotUrl ? `<img src="${headshotUrl}" alt="${player.name}" class="player-headshot">` : ''}
+                <div class="player-info">
+                    <strong>${player.name}</strong>
+                    ${position ? `<span class="position">${position}</span>` : ''}
+                    ${team ? `<span class="team">${team}</span>` : ''}
+                </div>
             </div>
         `;
     }).join('');
@@ -72,15 +82,24 @@ function displaySearchResults(players, resultsDiv) {
 }
 
 // Select player
-function selectPlayer(id, name, playerKey) {
+function selectPlayer(id, name, playerKey, headshotUrl = '', team = '', position = '') {
     // Convert id to number
     const playerId = parseInt(id, 10);
     
+    const playerInfo = `
+        <div class="player-details">
+            <span class="player-name">${name}</span>
+            ${position ? `<span class="player-position">${position}</span>` : ''}
+            ${team ? `<span class="player-team">${team}</span>` : ''}
+        </div>
+    `;
+    
     if (playerKey === 'A') {
-        selectedPlayerA = { id: playerId, name };
+        selectedPlayerA = { id: playerId, name, headshotUrl, team, position };
         selectedA.innerHTML = `
             <div class="selected-info">
-                <span class="player-name">${name}</span>
+                ${headshotUrl ? `<img src="${headshotUrl}" alt="${name}" class="selected-headshot">` : ''}
+                ${playerInfo}
                 <button class="remove-btn" onclick="clearPlayer('A')">✕</button>
             </div>
         `;
@@ -88,10 +107,11 @@ function selectPlayer(id, name, playerKey) {
         resultsA.innerHTML = '';
         resultsA.classList.remove('active');
     } else {
-        selectedPlayerB = { id: playerId, name };
+        selectedPlayerB = { id: playerId, name, headshotUrl, team, position };
         selectedB.innerHTML = `
             <div class="selected-info">
-                <span class="player-name">${name}</span>
+                ${headshotUrl ? `<img src="${headshotUrl}" alt="${name}" class="selected-headshot">` : ''}
+                ${playerInfo}
                 <button class="remove-btn" onclick="clearPlayer('B')">✕</button>
             </div>
         `;
@@ -118,6 +138,135 @@ function clearPlayer(playerKey) {
 // Update compare button state
 function updateCompareButton() {
     compareBtn.disabled = !selectedPlayerA || !selectedPlayerB;
+    
+    // Show/update stats when both players are selected
+    if (selectedPlayerA && selectedPlayerB) {
+        fetchAndDisplayStats();
+    } else {
+        playerStats.classList.add('hidden');
+    }
+}
+
+// Fetch and display player stats
+async function fetchAndDisplayStats() {
+    const statsType = getSelectedStatsType();
+    
+    try {
+        // Fetch stats for both players in parallel
+        const [statsDataA, statsDataB] = await Promise.all([
+            fetch(`${API_BASE}/athletes/${selectedPlayerA.id}/season-stats?type=${statsType}`).then(r => r.json()),
+            fetch(`${API_BASE}/athletes/${selectedPlayerB.id}/season-stats?type=${statsType}`).then(r => r.json())
+        ]);
+        
+        displayPlayerStats(statsDataA, selectedPlayerA, statsA);
+        displayPlayerStats(statsDataB, selectedPlayerB, statsB);
+        
+        playerStats.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+    }
+}
+
+// Display individual player stats
+function displayPlayerStats(statsData, player, container) {
+    if (!statsData || statsData.length === 0) {
+        container.innerHTML = `
+            <div class="no-stats">
+                <h3>${player.name}</h3>
+                <p>No statistics available</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Separate regular season and playoff stats
+    const regularSeasonStats = statsData.filter(s => s.type === 2);
+    const playoffStats = statsData.filter(s => s.type === 3);
+    
+    // Determine which stats to show based on what's selected
+    const statsToDisplay = regularSeasonStats.length > 0 ? regularSeasonStats : statsData;
+    
+    // Calculate career averages
+    const totalGames = statsToDisplay.reduce((sum, s) => sum + s.gp, 0);
+    const avgPts = (statsToDisplay.reduce((sum, s) => sum + s.pts, 0) / statsToDisplay.length).toFixed(1);
+    const avgAst = (statsToDisplay.reduce((sum, s) => sum + s.ast, 0) / statsToDisplay.length).toFixed(1);
+    const avgReb = (statsToDisplay.reduce((sum, s) => sum + s.reb, 0) / statsToDisplay.length).toFixed(1);
+    const avgMin = (statsToDisplay.reduce((sum, s) => sum + s.min, 0) / statsToDisplay.length).toFixed(1);
+    
+    // Calculate shooting percentages
+    const totalFgm = statsToDisplay.reduce((sum, s) => sum + s.fgm, 0);
+    const totalFga = statsToDisplay.reduce((sum, s) => sum + s.fga, 0);
+    const fgPct = totalFga > 0 ? ((totalFgm / totalFga) * 100).toFixed(1) : '0.0';
+    
+    const total3pm = statsToDisplay.reduce((sum, s) => sum + s.tpm, 0);
+    const total3pa = statsToDisplay.reduce((sum, s) => sum + s.tpa, 0);
+    const threePct = total3pa > 0 ? ((total3pm / total3pa) * 100).toFixed(1) : '0.0';
+    
+    // Find peak regular season (minimum 20 games to qualify)
+    // Peak is determined by total production: PTS + REB + AST
+    const qualifiedRegularStats = regularSeasonStats.filter(s => s.gp >= 20);
+    const peakRegularSeason = qualifiedRegularStats.length > 0 
+        ? qualifiedRegularStats.reduce((max, s) => {
+            const sTotal = s.pts + s.reb + s.ast;
+            const maxTotal = max.pts + max.reb + max.ast;
+            return sTotal > maxTotal ? s : max;
+        }, qualifiedRegularStats[0])
+        : null;
+    
+    // Build peak season HTML
+    let peakSeasonHtml = '';
+    if (peakRegularSeason) {
+        const total = (peakRegularSeason.pts + peakRegularSeason.reb + peakRegularSeason.ast).toFixed(1);
+        peakSeasonHtml = `
+            <div class="peak-season">
+                <h4>Peak Regular Season (${peakRegularSeason.season})</h4>
+                <p>${peakRegularSeason.pts.toFixed(1)} PPG, ${peakRegularSeason.ast.toFixed(1)} APG, ${peakRegularSeason.reb.toFixed(1)} RPG</p>
+                <p class="total-production">Total: ${total} (PPG+APG+RPG)</p>
+                <p class="games-played">${peakRegularSeason.gp} games played</p>
+            </div>
+        `;
+    }
+    
+    // Add playoff peak if available
+    // Peak playoff run also determined by total production
+    if (playoffStats.length > 0) {
+        const peakPlayoff = playoffStats.reduce((max, s) => {
+            const sTotal = s.pts + s.reb + s.ast;
+            const maxTotal = max.pts + max.reb + max.ast;
+            return sTotal > maxTotal ? s : max;
+        }, playoffStats[0]);
+        const total = (peakPlayoff.pts + peakPlayoff.reb + peakPlayoff.ast).toFixed(1);
+        peakSeasonHtml += `
+            <div class="peak-season playoff-peak">
+                <h4>Peak Playoff Run (${peakPlayoff.season})</h4>
+                <p>${peakPlayoff.pts.toFixed(1)} PPG, ${peakPlayoff.ast.toFixed(1)} APG, ${peakPlayoff.reb.toFixed(1)} RPG</p>
+                <p class="total-production">Total: ${total} (PPG+APG+RPG)</p>
+                <p class="games-played">${peakPlayoff.gp} playoff games</p>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = `
+        <h3>${player.name}</h3>
+        ${player.position ? `<p class="stat-position">${player.position} • ${player.team || ''}</p>` : ''}
+        
+        <div class="career-summary">
+            <h4>Career Overview</h4>
+            <p><strong>Seasons:</strong> ${statsToDisplay.length} | <strong>Games:</strong> ${totalGames}</p>
+        </div>
+        
+        <div class="stat-averages">
+            <h4>Career Averages</h4>
+            <div class="stat-row"><span>Points:</span> <strong>${avgPts}</strong></div>
+            <div class="stat-row"><span>Assists:</span> <strong>${avgAst}</strong></div>
+            <div class="stat-row"><span>Rebounds:</span> <strong>${avgReb}</strong></div>
+            <div class="stat-row"><span>Minutes:</span> <strong>${avgMin}</strong></div>
+            <div class="stat-row"><span>FG%:</span> <strong>${fgPct}%</strong></div>
+            <div class="stat-row"><span>3P%:</span> <strong>${threePct}%</strong></div>
+        </div>
+        
+        ${peakSeasonHtml}
+    `;
 }
 
 // Get selected stats type
@@ -206,19 +355,28 @@ searchInputB.addEventListener('input', debounce((e) => {
 resultsA.addEventListener('click', (e) => {
     const item = e.target.closest('.result-item');
     if (item) {
-        selectPlayer(item.dataset.playerId, item.dataset.playerName, 'A');
+        selectPlayer(item.dataset.playerId, item.dataset.playerName, 'A', item.dataset.headshotUrl, item.dataset.team, item.dataset.position);
     }
 });
 
 resultsB.addEventListener('click', (e) => {
     const item = e.target.closest('.result-item');
     if (item) {
-        selectPlayer(item.dataset.playerId, item.dataset.playerName, 'B');
+        selectPlayer(item.dataset.playerId, item.dataset.playerName, 'B', item.dataset.headshotUrl, item.dataset.team, item.dataset.position);
     }
 });
 
 // Compare button
 compareBtn.addEventListener('click', comparePlayers);
+
+// Stats type change listener
+document.querySelectorAll('input[name="statsType"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        if (selectedPlayerA && selectedPlayerB) {
+            fetchAndDisplayStats();
+        }
+    });
+});
 
 // Close search results when clicking outside
 document.addEventListener('click', (e) => {

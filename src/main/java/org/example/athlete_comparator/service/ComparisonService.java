@@ -33,13 +33,28 @@ public class ComparisonService {
                 You are an expert NBA analyst with deep knowledge of basketball statistics, player performance, and game dynamics.
                 Your task is to provide objective, data-driven comparisons between NBA players.
                 
-                When comparing players, consider:
-                - Career statistics (points, assists, rebounds, shooting percentages)
+                IMPORTANT: Differentiate between "1v1 matchup" and "overall better player":
+                
+                For OVERALL WINNER, consider:
+                - Career statistics and longevity
                 - Efficiency metrics (TS%, eFG%, per-75 stats)
                 - Consistency across seasons
-                - Peak performance vs career longevity
-                - Playoff performance vs regular season
+                - Peak performance and career achievements
+                - Playoff performance and championship success
+                - Impact on winning and team success
                 - All-around game vs specialized skills
+                
+                For 1v1 PREDICTION, focus on individual matchup factors:
+                - Scoring ability (PPG, shooting percentages, scoring versatility)
+                - Size, strength, and athleticism advantages
+                - Isolation and one-on-one scoring skills
+                - Ball handling and shot creation ability
+                - Individual defense (steals, blocks)
+                - Physical mismatch advantages
+                - NOTE: Assists and playmaking are irrelevant in 1v1 (no teammates to pass to)
+                
+                The 1v1 winner and overall winner can be DIFFERENT players.
+                Example: A bigger, more athletic player might win 1v1, but the smaller player could be greater overall due to championships, efficiency, and career impact.
                 
                 Provide balanced, factual analysis backed by the statistics provided.
                 Be specific with numbers and avoid generic statements.
@@ -65,6 +80,51 @@ public class ComparisonService {
         }
         // Fallback if name cannot be retrieved
         return "Player " + athleteId;
+    }
+
+    /**
+     * Appends a formatted career summary for a player to the prompt
+     *
+     * @param sb    StringBuilder to append to
+     * @param stats List of season statistics for the player
+     */
+    private void appendPlayerSummary(StringBuilder sb, List<SeasonStatDTO> stats) {
+        // Calculate career totals and averages
+        int totalSeasons = stats.size();
+        int totalGames = stats.stream().mapToInt(SeasonStatDTO::getGp).sum();
+
+        double avgPts = stats.stream().mapToDouble(SeasonStatDTO::getPts).average().orElse(0);
+        double avgAst = stats.stream().mapToDouble(SeasonStatDTO::getAst).average().orElse(0);
+        double avgReb = stats.stream().mapToDouble(SeasonStatDTO::getReb).average().orElse(0);
+        double avgMin = stats.stream().mapToDouble(SeasonStatDTO::getMin).average().orElse(0);
+
+        // Calculate field goal percentage across all seasons
+        double avgFgPct = stats.stream()
+                .filter(s -> s.getFga() > 0)
+                .mapToDouble(s -> s.getFgm() / s.getFga() * 100)
+                .average().orElse(0);
+
+        // Calculate true shooting percentage (efficiency metric)
+        double avgTs = stats.stream()
+                .filter(s -> s.getTs() != null)
+                .mapToDouble(SeasonStatDTO::getTs)
+                .average().orElse(0);
+
+        // Append career overview
+        sb.append(String.format("  Seasons: %d | Total Games: %d\n", totalSeasons, totalGames));
+        sb.append(String.format("  Career Averages: %.1f PPG, %.1f APG, %.1f RPG, %.1f MPG\n",
+                avgPts, avgAst, avgReb, avgMin));
+        sb.append(String.format("  Shooting: %.1f%% FG, %.1f%% TS\n", avgFgPct, avgTs * 100));
+
+        // Find and display peak scoring season
+        SeasonStatDTO bestSeason = stats.stream()
+                .max((s1, s2) -> Double.compare(s1.getPts(), s2.getPts()))
+                .orElse(null);
+
+        if (bestSeason != null) {
+            sb.append(String.format("  Peak Season (%d): %.1f PPG, %.1f APG, %.1f RPG\n",
+                    bestSeason.getSeason(), bestSeason.getPts(), bestSeason.getAst(), bestSeason.getReb()));
+        }
     }
 
     /**
@@ -94,8 +154,8 @@ public class ComparisonService {
         // Define what analysis we want from the AI
         prompt.append("\n");
         prompt.append("Based on this data, provide:\n");
-        prompt.append("1. Overall Winner: Who is the better player overall and why?\n");
-        prompt.append("2. 1v1 Prediction: Who would win in a 1-on-1 game and why?\n");
+        prompt.append("1. Overall Winner: Who is the BETTER PLAYER OVERALL considering career achievements, efficiency, impact, and longevity?\n");
+        prompt.append("2. 1v1 Prediction: Who would WIN A 1-ON-1 GAME based on scoring ability, size/athleticism, and individual defense? (Ignore assists/playmaking - no teammates in 1v1)\n");
         prompt.append("3. Player 1 Strengths: What are Player 1's main strengths?\n");
         prompt.append("4. Player 2 Strengths: What are Player 2's main strengths?\n");
         prompt.append("5. Conclusion: Final verdict with key differentiators.\n\n");
@@ -109,6 +169,19 @@ public class ComparisonService {
         prompt.append("CONCLUSION: [Final analysis]");
 
         return prompt.toString();
+    }
+
+    /**
+     * Helper method to set the appropriate field on the result object
+     */
+    private void setResultField(CompareResultDTO result, String key, String value) {
+        switch (key) {
+            case "OVERALL_WINNER" -> result.setOverallWinner(value);
+            case "ONE_VS_ONE" -> result.setOneVsOnePrediction(value);
+            case "PLAYER1_STRENGTHS" -> result.setPlayer1Strengths(value);
+            case "PLAYER2_STRENGTHS" -> result.setPlayer2Strengths(value);
+            case "CONCLUSION" -> result.setConclusion(value);
+        }
     }
 
     /**
@@ -185,19 +258,6 @@ public class ComparisonService {
 
         return result;
     }
-    
-    /**
-     * Helper method to set the appropriate field on the result object
-     */
-    private void setResultField(CompareResultDTO result, String key, String value) {
-        switch (key) {
-            case "OVERALL_WINNER" -> result.setOverallWinner(value);
-            case "ONE_VS_ONE" -> result.setOneVsOnePrediction(value);
-            case "PLAYER1_STRENGTHS" -> result.setPlayer1Strengths(value);
-            case "PLAYER2_STRENGTHS" -> result.setPlayer2Strengths(value);
-            case "CONCLUSION" -> result.setConclusion(value);
-        }
-    }
 
     /**
      * Compares two NBA athletes using their career statistics and AI analysis
@@ -237,50 +297,5 @@ public class ComparisonService {
 
         // Parse AI response into structured result
         return parseAiResponse(aiResponse, player1Name, player2Name);
-    }
-
-    /**
-     * Appends a formatted career summary for a player to the prompt
-     *
-     * @param sb    StringBuilder to append to
-     * @param stats List of season statistics for the player
-     */
-    private void appendPlayerSummary(StringBuilder sb, List<SeasonStatDTO> stats) {
-        // Calculate career totals and averages
-        int totalSeasons = stats.size();
-        int totalGames = stats.stream().mapToInt(SeasonStatDTO::getGp).sum();
-
-        double avgPts = stats.stream().mapToDouble(SeasonStatDTO::getPts).average().orElse(0);
-        double avgAst = stats.stream().mapToDouble(SeasonStatDTO::getAst).average().orElse(0);
-        double avgReb = stats.stream().mapToDouble(SeasonStatDTO::getReb).average().orElse(0);
-        double avgMin = stats.stream().mapToDouble(SeasonStatDTO::getMin).average().orElse(0);
-
-        // Calculate field goal percentage across all seasons
-        double avgFgPct = stats.stream()
-                .filter(s -> s.getFga() > 0)
-                .mapToDouble(s -> s.getFgm() / s.getFga() * 100)
-                .average().orElse(0);
-
-        // Calculate true shooting percentage (efficiency metric)
-        double avgTs = stats.stream()
-                .filter(s -> s.getTs() != null)
-                .mapToDouble(SeasonStatDTO::getTs)
-                .average().orElse(0);
-
-        // Append career overview
-        sb.append(String.format("  Seasons: %d | Total Games: %d\n", totalSeasons, totalGames));
-        sb.append(String.format("  Career Averages: %.1f PPG, %.1f APG, %.1f RPG, %.1f MPG\n",
-                avgPts, avgAst, avgReb, avgMin));
-        sb.append(String.format("  Shooting: %.1f%% FG, %.1f%% TS\n", avgFgPct, avgTs * 100));
-
-        // Find and display peak scoring season
-        SeasonStatDTO bestSeason = stats.stream()
-                .max((s1, s2) -> Double.compare(s1.getPts(), s2.getPts()))
-                .orElse(null);
-
-        if (bestSeason != null) {
-            sb.append(String.format("  Peak Season (%d): %.1f PPG, %.1f APG, %.1f RPG\n",
-                    bestSeason.getSeason(), bestSeason.getPts(), bestSeason.getAst(), bestSeason.getReb()));
-        }
     }
 }

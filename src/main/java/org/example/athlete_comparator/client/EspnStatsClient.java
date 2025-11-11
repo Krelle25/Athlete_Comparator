@@ -55,12 +55,29 @@ public class EspnStatsClient {
     }
 
     /**
-     * Fetches athlete information including name, team, and other details
+     * Fetches athlete information including name, team, position, and other details
      * @param athleteID The unique ESPN athlete ID
      * @return JsonNode containing athlete information, or null if request fails
      */
     public JsonNode getAthleteInfo(long athleteID) {
         String url = coreBase + "/athletes/" + athleteID + "?region=us&lang=en";
+        try {
+            return restClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Fetches basic athlete bio including position
+     * @param athleteID The unique ESPN athlete ID
+     * @return JsonNode containing athlete bio, or null if request fails
+     */
+    public JsonNode getAthleteBio(long athleteID) {
+        String url = "https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba/athletes/" + athleteID;
         try {
             return restClient.get()
                     .uri(url)

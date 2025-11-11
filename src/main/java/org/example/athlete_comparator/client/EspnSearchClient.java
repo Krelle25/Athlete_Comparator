@@ -79,7 +79,7 @@ public class EspnSearchClient {
                 dto.setName(content.path("displayName").asText(""));
                 dto.setLeague("nba");
                 dto.setTeam(content.path("subtitle").asText(""));
-                dto.setPosition(null);
+                dto.setPosition("");  // Will be enriched by SearchService from bio endpoint
                 dto.setHeadshotUrl(content.path("image").path("default").asText(""));
 
                 out.add(dto);

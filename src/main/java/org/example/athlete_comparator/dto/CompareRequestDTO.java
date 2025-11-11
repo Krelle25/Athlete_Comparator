@@ -1,9 +1,20 @@
 package org.example.athlete_comparator.dto;
 
+/**
+ * Data Transfer Object (DTO) for comparison requests from the frontend.
+
+ * This class represents the JSON data sent when comparing two players.
+ * Example frontend request:
+ * {
+ *   "aID": 1966,    // First player's ESPN ID
+ *   "bID": 3975,    // Second player's ESPN ID
+ *   "type": 0       // Stats type to compare
+ * }
+ */
 public class CompareRequestDTO {
-    private long aID;
-    private long bID;
-    Integer type;
+    private long aID;     // Player A's ESPN athlete ID
+    private long bID;     // Player B's ESPN athlete ID
+    private Integer type; // 0 = all stats, 2 = regular season, 3 = playoffs
 
     public CompareRequestDTO() {
     }
@@ -13,7 +24,7 @@ public class CompareRequestDTO {
         this.bID = bID;
         this.type = type;
     }
-
+    
     public long getaID() {
         return aID;
     }

@@ -1,5 +1,21 @@
 package org.example.athlete_comparator.dto;
 
+/**
+ * Data Transfer Object for player search results.
+
+ * Represents a single player in search results from the ESPN API.
+ * Used when the user types a player name in the search box.
+
+ * Example object:
+ * {
+ *   "ID": 1966,
+ *   "name": "LeBron James",
+ *   "league": "nba",
+ *   "team": "Los Angeles Lakers",
+ *   "position": "SF",
+ *   "headshotUrl": "https://a.espncdn.com/i/headshots/nba/players/full/1966.png"
+ * }
+ */
 public class PlayerSearchResultDTO {
     private long ID;
     private String name;
@@ -19,7 +35,7 @@ public class PlayerSearchResultDTO {
         this.position = position;
         this.headshotUrl = headshotUrl;
     }
-
+    
     public long getID() {
         return ID;
     }

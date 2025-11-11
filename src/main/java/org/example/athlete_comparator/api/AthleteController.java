@@ -8,8 +8,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST Controller for athlete-related endpoints.
+
+ * Handles HTTP requests for:
+ * - Searching for NBA players
+ * - Retrieving individual player statistics
+
+ * All endpoints are prefixed with /api (defined by @RequestMapping)
+ */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api")  // All endpoints in this controller start with /api
 public class AthleteController {
 
     private final SearchService searchService;
@@ -20,11 +29,30 @@ public class AthleteController {
         this.statsService = statsService;
     }
 
+    /**
+     * Search for NBA players by name.
+
+     * Endpoint: GET /api/search?q={searchText}
+     * Example: GET /api/search?q=LeBron
+
+     * @param searchText The player name to search for (from query parameter 'q')
+     * @return List of matching players with their basic info and headshot URLs
+     */
     @GetMapping("/search")
     public List<PlayerSearchResultDTO> search(@RequestParam("q") String searchText) {
         return searchService.search(searchText);
     }
 
+    /**
+     * Get season-by-season statistics for a specific athlete.
+
+     * Endpoint: GET /api/athletes/{id}/season-stats?type={type}
+     * Example: GET /api/athletes/1966/season-stats?type=2
+
+     * @param id The ESPN athlete ID
+     * @param type Stats type: 0 = all stats | 2 = regular season only | 3 = playoffs only (default: 2)
+     * @return List of statistics for each season the player has data
+     */
     @GetMapping("/athletes/{id}/season-stats")
     public List<SeasonStatDTO> getSeasonStats(@PathVariable long id,
                                               @RequestParam(defaultValue = "2") int type) {
