@@ -124,24 +124,59 @@ public class ComparisonService {
         result.setPlayer2Name(player2Name);
 
         try {
-            // Parse each line looking for expected format markers
+            // Parse each section, handling multi-line content
+            StringBuilder currentSection = new StringBuilder();
+            String currentKey = null;
+            
             String[] lines = response.split("\n");
             for (String line : lines) {
                 if (line.startsWith("OVERALL_WINNER:")) {
-                    result.setOverallWinner(line.substring("OVERALL_WINNER:".length()).trim());
+                    if (currentKey != null) {
+                        setResultField(result, currentKey, currentSection.toString().trim());
+                    }
+                    currentKey = "OVERALL_WINNER";
+                    currentSection = new StringBuilder(line.substring("OVERALL_WINNER:".length()).trim());
                 } else if (line.startsWith("ONE_VS_ONE:")) {
-                    result.setOneVsOnePrediction(line.substring("ONE_VS_ONE:".length()).trim());
+                    if (currentKey != null) {
+                        setResultField(result, currentKey, currentSection.toString().trim());
+                    }
+                    currentKey = "ONE_VS_ONE";
+                    currentSection = new StringBuilder(line.substring("ONE_VS_ONE:".length()).trim());
                 } else if (line.startsWith("PLAYER1_STRENGTHS:")) {
-                    result.setPlayer1Strengths(line.substring("PLAYER1_STRENGTHS:".length()).trim());
+                    if (currentKey != null) {
+                        setResultField(result, currentKey, currentSection.toString().trim());
+                    }
+                    currentKey = "PLAYER1_STRENGTHS";
+                    currentSection = new StringBuilder(line.substring("PLAYER1_STRENGTHS:".length()).trim());
                 } else if (line.startsWith("PLAYER2_STRENGTHS:")) {
-                    result.setPlayer2Strengths(line.substring("PLAYER2_STRENGTHS:".length()).trim());
+                    if (currentKey != null) {
+                        setResultField(result, currentKey, currentSection.toString().trim());
+                    }
+                    currentKey = "PLAYER2_STRENGTHS";
+                    currentSection = new StringBuilder(line.substring("PLAYER2_STRENGTHS:".length()).trim());
                 } else if (line.startsWith("CONCLUSION:")) {
-                    result.setConclusion(line.substring("CONCLUSION:".length()).trim());
+                    if (currentKey != null) {
+                        setResultField(result, currentKey, currentSection.toString().trim());
+                    }
+                    currentKey = "CONCLUSION";
+                    currentSection = new StringBuilder(line.substring("CONCLUSION:".length()).trim());
+                } else if (currentKey != null && !line.trim().isEmpty()) {
+                    // Continuation of current section
+                    currentSection.append(" ").append(line.trim());
                 }
+            }
+            
+            // Set the last section
+            if (currentKey != null) {
+                setResultField(result, currentKey, currentSection.toString().trim());
             }
 
             // Store full analysis as well
             result.setAnalysis(response);
+            
+            log.debug("Parsed result - Winner: {}, 1v1: {}, P1 Strengths: {}, P2 Strengths: {}, Conclusion: {}",
+                    result.getOverallWinner(), result.getOneVsOnePrediction(), 
+                    result.getPlayer1Strengths(), result.getPlayer2Strengths(), result.getConclusion());
         } catch (Exception e) {
             log.error("Error parsing AI response", e);
             // If parsing fails, still return the raw analysis
@@ -149,6 +184,19 @@ public class ComparisonService {
         }
 
         return result;
+    }
+    
+    /**
+     * Helper method to set the appropriate field on the result object
+     */
+    private void setResultField(CompareResultDTO result, String key, String value) {
+        switch (key) {
+            case "OVERALL_WINNER" -> result.setOverallWinner(value);
+            case "ONE_VS_ONE" -> result.setOneVsOnePrediction(value);
+            case "PLAYER1_STRENGTHS" -> result.setPlayer1Strengths(value);
+            case "PLAYER2_STRENGTHS" -> result.setPlayer2Strengths(value);
+            case "CONCLUSION" -> result.setConclusion(value);
+        }
     }
 
     /**
@@ -184,6 +232,8 @@ public class ComparisonService {
 
         // Send to OpenAI for analysis
         String aiResponse = openAiClient.sendPrompt(systemPrompt, userPrompt);
+        
+        log.debug("OpenAI Response: {}", aiResponse);
 
         // Parse AI response into structured result
         return parseAiResponse(aiResponse, player1Name, player2Name);
