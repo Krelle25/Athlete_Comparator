@@ -21,6 +21,76 @@ public class StatsService {
         this.espnStatsClient = espnStatsClient;
     }
 
+    private static int tail(JsonNode n) {
+        String href = n.path("$ref").asText(n.path("href").asText(""));
+        Matcher m = TAIL_INT.matcher(href);
+        return m.find() ? Integer.parseInt(m.group(1)) : -1;
+    }
+
+    private SeasonStatDTO mapAveragesToDto(JsonNode avg, int season, int type) {
+        SeasonStatDTO dto = new SeasonStatDTO();
+        dto.setSeason(season);
+        dto.setType(type);
+
+        dto.setGp((int) r(stat(avg, "gamesPlayed")));
+        dto.setMin(stat(avg, "avgMinutes"));
+        dto.setPts(stat(avg, "avgPoints"));
+        dto.setAst(stat(avg, "avgAssists"));
+        dto.setReb(stat(avg, "avgRebounds"));
+        dto.setStl(stat(avg, "avgSteals"));
+        dto.setBlk(stat(avg, "avgBlocks"));
+        dto.setTov(stat(avg, "avgTurnovers"));
+
+        dto.setFgm(stat(avg, "avgFieldGoalsMade"));
+        dto.setFga(stat(avg, "avgFieldGoalsAttempted"));
+        dto.setTpm(stat(avg, "avgThreePointFieldGoalsMade"));
+        dto.setTpa(stat(avg, "avgThreePointFieldGoalsAttempted"));
+        dto.setFtm(stat(avg, "avgFreeThrowsMade"));
+        dto.setFta(stat(avg, "avgFreeThrowsAttempted"));
+
+        // afledte
+        double fga = nz(dto.getFga()), fta = nz(dto.getFta());
+        double fgm = nz(dto.getFgm()), tpm = nz(dto.getTpm());
+        double pts = nz(dto.getPts()), mp  = nz(dto.getMin());
+
+        dto.setTs((fga + 0.44 * fta) > 0 ? pts / (2.0 * (fga + 0.44 * fta)) : null);
+        dto.setEfg(fga > 0 ? (fgm + 0.5 * tpm) / fga : null);
+
+        if (mp > 0) {
+            dto.setPer75Pts(pts / mp * 75.0);
+            dto.setPer75Ast(nz(dto.getAst()) / mp * 75.0);
+            dto.setPer75Reb(nz(dto.getReb()) / mp * 75.0);
+        }
+
+        return dto;
+    }
+
+    private static double stat(JsonNode root, String name) {
+        JsonNode categories = root.path("splits").path("categories");
+        if (categories.isMissingNode()) {
+            categories = root.path("categories");
+        }
+
+        for (JsonNode cat : categories) {
+            for (JsonNode st : cat.path("stats")) {
+                if (name.equalsIgnoreCase(st.path("name").asText(""))) {
+                    JsonNode v = st.path("value");
+                    if (v.isNumber()) return v.asDouble();
+                    try { return Double.parseDouble(v.asText("0")); } catch (Exception ignored) {}
+                }
+            }
+        }
+        return 0.0;
+    }
+
+    private static double nz(Double d) {
+        return d == null ? 0.0 : d;
+    }
+
+    private static double r(double v) {
+        return Math.rint(v);
+    }
+
     /**
      * @param type 2 = Regular | 3 = Playoffs | 0 = begge
      */
@@ -92,74 +162,4 @@ public class StatsService {
         out.sort(Comparator.comparingInt(SeasonStatDTO::getSeason));
         return out;
     }
-
-    private static int tail(JsonNode n) {
-        String href = n.path("$ref").asText(n.path("href").asText(""));
-        Matcher m = TAIL_INT.matcher(href);
-        return m.find() ? Integer.parseInt(m.group(1)) : -1;
-    }
-
-    private static int typeFromRef(String href) {
-        var m = TYPES_INT.matcher(href == null ? "" : href);
-        return m.find() ? Integer.parseInt(m.group(1)) : -1;
-    }
-
-    private SeasonStatDTO mapAveragesToDto(JsonNode avg, int season, int type) {
-        SeasonStatDTO dto = new SeasonStatDTO();
-        dto.setSeason(season);
-        dto.setType(type);
-
-        dto.setGp((int) r(stat(avg, "gamesPlayed")));
-        dto.setMin(stat(avg, "avgMinutes"));
-        dto.setPts(stat(avg, "avgPoints"));
-        dto.setAst(stat(avg, "avgAssists"));
-        dto.setReb(stat(avg, "avgRebounds"));
-        dto.setStl(stat(avg, "avgSteals"));
-        dto.setBlk(stat(avg, "avgBlocks"));
-        dto.setTov(stat(avg, "avgTurnovers"));
-
-        dto.setFgm(stat(avg, "avgFieldGoalsMade"));
-        dto.setFga(stat(avg, "avgFieldGoalsAttempted"));
-        dto.setTpm(stat(avg, "avgThreePointFieldGoalsMade"));
-        dto.setTpa(stat(avg, "avgThreePointFieldGoalsAttempted"));
-        dto.setFtm(stat(avg, "avgFreeThrowsMade"));
-        dto.setFta(stat(avg, "avgFreeThrowsAttempted"));
-
-        // afledte
-        double fga = nz(dto.getFga()), fta = nz(dto.getFta());
-        double fgm = nz(dto.getFgm()), tpm = nz(dto.getTpm());
-        double pts = nz(dto.getPts()), mp  = nz(dto.getMin());
-
-        dto.setTs((fga + 0.44 * fta) > 0 ? pts / (2.0 * (fga + 0.44 * fta)) : null);
-        dto.setEfg(fga > 0 ? (fgm + 0.5 * tpm) / fga : null);
-
-        if (mp > 0) {
-            dto.setPer75Pts(pts / mp * 75.0);
-            dto.setPer75Ast(nz(dto.getAst()) / mp * 75.0);
-            dto.setPer75Reb(nz(dto.getReb()) / mp * 75.0);
-        }
-        
-        return dto;
-    }
-
-    private static double stat(JsonNode root, String name) {
-        JsonNode categories = root.path("splits").path("categories");
-        if (categories.isMissingNode()) {
-            categories = root.path("categories");
-        }
-        
-        for (JsonNode cat : categories) {
-            for (JsonNode st : cat.path("stats")) {
-                if (name.equalsIgnoreCase(st.path("name").asText(""))) {
-                    JsonNode v = st.path("value");
-                    if (v.isNumber()) return v.asDouble();
-                    try { return Double.parseDouble(v.asText("0")); } catch (Exception ignored) {}
-                }
-            }
-        }
-        return 0.0;
-    }
-
-    private static double nz(Double d){ return d == null ? 0.0 : d; }
-    private static double r(double v){ return Math.rint(v); }
 }

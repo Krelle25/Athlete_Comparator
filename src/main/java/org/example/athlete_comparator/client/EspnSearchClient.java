@@ -37,6 +37,19 @@ public class EspnSearchClient {
                 .build();
     }
 
+    private static long parseAthleteID(String uid) {
+        Matcher matcher = UID_ATHLETE.matcher(uid);
+        return matcher.find() ? Long.parseLong(matcher.group(1)) : -1;
+    }
+
+    private static String encode(String q) {
+        try {
+            return java.net.URLEncoder.encode(q, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            return q;
+        }
+    }
+
     public List<PlayerSearchResultDTO> searchPlayers(String query) {
         String url = searchBase + "?limit=50&query=" + encode(query);
 
@@ -74,18 +87,4 @@ public class EspnSearchClient {
         }
         return out;
     }
-
-    private static long parseAthleteID(String uid) {
-        Matcher matcher = UID_ATHLETE.matcher(uid);
-        return matcher.find() ? Long.parseLong(matcher.group(1)) : -1;
-    }
-
-    private static String encode(String q) {
-        try {
-            return java.net.URLEncoder.encode(q, java.nio.charset.StandardCharsets.UTF_8);
-        } catch (Exception ex) {
-            return q;
-        }
-    }
-
 }
