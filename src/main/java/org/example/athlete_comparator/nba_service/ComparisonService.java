@@ -1,11 +1,10 @@
-package org.example.athlete_comparator.service;
+package org.example.athlete_comparator.nba_service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.athlete_comparator.client.EspnStatsClient;
-import org.example.athlete_comparator.client.OpenAiClient;
-import org.example.athlete_comparator.dto.CompareResultDTO;
-import org.example.athlete_comparator.dto.SeasonStatDTO;
+import org.example.athlete_comparator.nba_client.EspnStatsClient;
+import org.example.athlete_comparator.nba_client.OpenAiClient;
+import org.example.athlete_comparator.nba_dto.CompareResultDTO;
+import org.example.athlete_comparator.nba_dto.SeasonStatDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

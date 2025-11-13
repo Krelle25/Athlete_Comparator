@@ -1,8 +1,8 @@
-package org.example.athlete_comparator.api;
+package org.example.athlete_comparator.nba_api;
 
-import org.example.athlete_comparator.dto.CompareRequestDTO;
-import org.example.athlete_comparator.dto.CompareResultDTO;
-import org.example.athlete_comparator.service.ComparisonService;
+import org.example.athlete_comparator.nba_dto.CompareRequestDTO;
+import org.example.athlete_comparator.nba_dto.CompareResultDTO;
+import org.example.athlete_comparator.nba_service.ComparisonService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

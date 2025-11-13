@@ -1,4 +1,4 @@
-package org.example.athlete_comparator.dto;
+package org.example.athlete_comparator.nba_dto;
 
 public class CompareResultDTO {
     private String player1Name;

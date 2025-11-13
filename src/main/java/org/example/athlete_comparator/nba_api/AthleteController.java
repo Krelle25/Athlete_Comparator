@@ -1,11 +1,11 @@
-package org.example.athlete_comparator.api;
+package org.example.athlete_comparator.nba_api;
 
-import org.example.athlete_comparator.dto.AccoladesDTO;
-import org.example.athlete_comparator.dto.PlayerSearchResultDTO;
-import org.example.athlete_comparator.dto.SeasonStatDTO;
-import org.example.athlete_comparator.service.AccoladesService;
-import org.example.athlete_comparator.service.SearchService;
-import org.example.athlete_comparator.service.StatsService;
+import org.example.athlete_comparator.nba_dto.AccoladesDTO;
+import org.example.athlete_comparator.nba_dto.PlayerSearchResultDTO;
+import org.example.athlete_comparator.nba_dto.SeasonStatDTO;
+import org.example.athlete_comparator.nba_service.AccoladesService;
+import org.example.athlete_comparator.nba_service.SearchService;
+import org.example.athlete_comparator.nba_service.StatsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

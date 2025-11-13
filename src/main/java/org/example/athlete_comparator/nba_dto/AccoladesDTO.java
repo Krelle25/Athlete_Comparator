@@ -1,4 +1,4 @@
-package org.example.athlete_comparator.dto;
+package org.example.athlete_comparator.nba_dto;
 
 import java.util.List;
 

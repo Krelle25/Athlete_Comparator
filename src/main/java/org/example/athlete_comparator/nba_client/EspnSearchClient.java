@@ -1,8 +1,8 @@
-package org.example.athlete_comparator.client;
+package org.example.athlete_comparator.nba_client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.athlete_comparator.dto.PlayerSearchResultDTO;
+import org.example.athlete_comparator.nba_dto.PlayerSearchResultDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;

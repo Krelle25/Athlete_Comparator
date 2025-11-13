@@ -1,4 +1,4 @@
-package org.example.athlete_comparator.client;
+package org.example.athlete_comparator.nba_client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
