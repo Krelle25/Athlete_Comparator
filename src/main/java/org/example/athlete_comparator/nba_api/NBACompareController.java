@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api")  // All endpoints start with /api
-public class CompareController {
+public class NBACompareController {
 
     private final ComparisonService comparisonService;
 
-    public CompareController(ComparisonService comparisonService) {
+    public NBACompareController(ComparisonService comparisonService) {
         this.comparisonService = comparisonService;
     }
 

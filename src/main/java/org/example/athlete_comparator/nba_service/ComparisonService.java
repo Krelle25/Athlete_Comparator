@@ -1,7 +1,7 @@
 package org.example.athlete_comparator.nba_service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.example.athlete_comparator.nba_client.EspnStatsClient;
+import org.example.athlete_comparator.nba_client.EspnNBAStatsClient;
 import org.example.athlete_comparator.nba_client.OpenAiClient;
 import org.example.athlete_comparator.nba_dto.CompareResultDTO;
 import org.example.athlete_comparator.nba_dto.SeasonStatDTO;
@@ -16,12 +16,12 @@ public class ComparisonService {
 
     private static final Logger log = LoggerFactory.getLogger(ComparisonService.class);
     private final StatsService statsService;
-    private final EspnStatsClient espnStatsClient;
+    private final EspnNBAStatsClient espnNBAStatsClient;
     private final OpenAiClient openAiClient;
 
-    public ComparisonService(StatsService statsService, EspnStatsClient espnStatsClient, OpenAiClient openAiClient) {
+    public ComparisonService(StatsService statsService, EspnNBAStatsClient espnNBAStatsClient, OpenAiClient openAiClient) {
         this.statsService = statsService;
-        this.espnStatsClient = espnStatsClient;
+        this.espnNBAStatsClient = espnNBAStatsClient;
         this.openAiClient = openAiClient;
     }
 
@@ -67,7 +67,7 @@ public class ComparisonService {
      */
     private String getPlayerName(long athleteId) {
         try {
-            JsonNode athleteInfo = espnStatsClient.getAthleteInfo(athleteId);
+            JsonNode athleteInfo = espnNBAStatsClient.getAthleteInfo(athleteId);
             if (athleteInfo != null) {
                 String fullName = athleteInfo.path("displayName").asText("");
                 if (!fullName.isEmpty()) {

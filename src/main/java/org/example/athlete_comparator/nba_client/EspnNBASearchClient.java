@@ -14,16 +14,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class EspnSearchClient {
+public class EspnNBASearchClient {
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final String searchBase;
     private static final Pattern UID_ATHLETE = Pattern.compile("a:(\\d+)");
 
-    public EspnSearchClient(@Value("${espn.nba.api.search}") String searchBase,
-                            @Value("${espn.api.timeout:5000}") int timeout,
-                            ObjectMapper objectMapper)
+    public EspnNBASearchClient(@Value("${espn.nba.api.search}") String searchBase,
+                               @Value("${espn.api.timeout:5000}") int timeout,
+                               ObjectMapper objectMapper)
     {
         this.searchBase = searchBase;
         this.objectMapper = objectMapper;

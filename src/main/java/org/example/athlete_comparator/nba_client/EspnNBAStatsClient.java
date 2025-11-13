@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
-public class EspnStatsClient {
+public class EspnNBAStatsClient {
 
     private final RestClient restClient;
     private final String coreBase;
     private final String webBase;
 
-    public EspnStatsClient(@Value("${espn.nba.api.base}") String coreBase,
-                           @Value("${espn.nba.api.web}") String webBase,
-                           @Value("${espn.api.timeout:5000}") int timeout) {
+    public EspnNBAStatsClient(@Value("${espn.nba.api.base}") String coreBase,
+                              @Value("${espn.nba.api.web}") String webBase,
+                              @Value("${espn.api.timeout:5000}") int timeout) {
         if (coreBase == null || coreBase.isBlank()) {
             throw new IllegalStateException("espn.api.base is not set");
         }

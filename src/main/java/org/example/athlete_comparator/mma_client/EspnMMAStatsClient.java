@@ -36,7 +36,7 @@ public class EspnMMAStatsClient {
     }
 
     public JsonNode getFightRecords(long athleteID) {
-        String url = ufcBase + "/athletes/" + athleteID + "/records?lang=en&region=us";
+        String url = coreBase + "/athletes/" + athleteID + "/records?lang=en&region=us";
         try {
             return restClient.get()
                     .uri(url)

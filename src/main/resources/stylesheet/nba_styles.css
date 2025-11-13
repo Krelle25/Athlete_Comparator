@@ -1,9 +1,4 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* NBA Specific Styles */
 :root {
     --primary-color: #0755a7;
     --secondary-color: #d61e36;
@@ -19,16 +14,8 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, var(--primary-color) 50%, var(--secondary-color) 50%);
-    min-height: 100vh;
     color: var(--text-primary);
-    padding: 20px;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
 /* Header */
