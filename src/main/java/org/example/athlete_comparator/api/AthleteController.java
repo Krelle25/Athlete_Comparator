@@ -1,7 +1,9 @@
 package org.example.athlete_comparator.api;
 
+import org.example.athlete_comparator.dto.AccoladesDTO;
 import org.example.athlete_comparator.dto.PlayerSearchResultDTO;
 import org.example.athlete_comparator.dto.SeasonStatDTO;
+import org.example.athlete_comparator.service.AccoladesService;
 import org.example.athlete_comparator.service.SearchService;
 import org.example.athlete_comparator.service.StatsService;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +25,12 @@ public class AthleteController {
 
     private final SearchService searchService;
     private final StatsService statsService;
+    private final AccoladesService accoladesService;
 
-    public AthleteController(SearchService searchService, StatsService statsService) {
+    public AthleteController(SearchService searchService, StatsService statsService, AccoladesService accoladesService) {
         this.searchService = searchService;
         this.statsService = statsService;
+        this.accoladesService = accoladesService;
     }
 
     /**
@@ -57,5 +61,19 @@ public class AthleteController {
     public List<SeasonStatDTO> getSeasonStats(@PathVariable long id,
                                               @RequestParam(defaultValue = "2") int type) {
         return statsService.getSeasonStats(id, type);
+    }
+
+    /**
+     * Get accolades and awards for a specific athlete.
+
+     * Endpoint: GET /api/athletes/{id}/accolades
+     * Example: GET /api/athletes/1966/accolades
+
+     * @param id The ESPN athlete ID
+     * @return AccoladesDTO containing player name and list of awards/accolades
+     */
+    @GetMapping("/athletes/{id}/accolades")
+    public AccoladesDTO getAccolades(@PathVariable long id) {
+        return accoladesService.getAccolades(id);
     }
 }

@@ -11,14 +11,20 @@ public class EspnStatsClient {
 
     private final RestClient restClient;
     private final String coreBase;
+    private final String webBase;
 
     public EspnStatsClient(@Value("${espn.api.base}") String coreBase,
+                           @Value("${espn.api.web}") String webBase,
                            @Value("${espn.api.timeout:5000}") int timeout) {
         if (coreBase == null || coreBase.isBlank()) {
             throw new IllegalStateException("espn.api.base is not set");
         }
+        if (webBase == null || webBase.isBlank()) {
+            throw new IllegalStateException("espn.api.web is not set");
+        }
 
         this.coreBase = coreBase;
+        this.webBase = webBase;
 
         var reqFactory = new SimpleClientHttpRequestFactory();
         reqFactory.setConnectTimeout(timeout);
@@ -60,7 +66,7 @@ public class EspnStatsClient {
      * @return JsonNode containing athlete information, or null if request fails
      */
     public JsonNode getAthleteInfo(long athleteID) {
-        String url = coreBase + "/athletes/" + athleteID + "?region=us&lang=en";
+        String url = coreBase + "/athletes/" + athleteID + "?region=us&lang=dk";
         try {
             return restClient.get()
                     .uri(url)
@@ -70,14 +76,14 @@ public class EspnStatsClient {
             return null;
         }
     }
-    
+
     /**
-     * Fetches basic athlete bio including position
+     * Fetches athlete bio data including awards and accolades
      * @param athleteID The unique ESPN athlete ID
-     * @return JsonNode containing athlete bio, or null if request fails
+     * @return JsonNode containing athlete bio information, or null if request fails
      */
     public JsonNode getAthleteBio(long athleteID) {
-        String url = "https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba/athletes/" + athleteID;
+        String url = webBase + "/athletes/" + athleteID + "/bio";
         try {
             return restClient.get()
                     .uri(url)

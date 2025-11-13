@@ -8,6 +8,9 @@ let selectedPlayerB = null;
 // DOM Elements
 const searchInputA = document.getElementById('searchA');
 const searchInputB = document.getElementById('searchB');
+const playerAccolades = document.getElementById('playerAccolades');
+const accoladesA = document.getElementById('accoladesA');
+const accoladesB = document.getElementById('accoladesB');
 const resultsA = document.getElementById('resultsA');
 const resultsB = document.getElementById('resultsB');
 const selectedA = document.getElementById('selectedA');
@@ -32,6 +35,44 @@ function debounce(func, wait) {
     };
 }
 
+// Display search results
+function displaySearchResults(players, resultsDiv) {
+    if (players.length === 0) {
+        resultsDiv.innerHTML = '<div class="no-results">No players found</div>';
+        resultsDiv.classList.add('active');
+        return;
+    }
+
+    resultsDiv.innerHTML = players.map(player => {
+        const playerId = player.ID || player.id || player.athleteId;
+        const headshotUrl = player.headshotUrl || '';
+        const team = player.team || '';
+        const position = player.position || '';
+        const height = (player.displayHeight || player.height || '').toString();
+        const weight = (player.displayWeight || player.weight || '').toString();
+
+        return `
+            <div class="result-item" 
+                data-player-id="${playerId}" 
+                data-player-name="${player.name}" 
+                data-headshot-url="${headshotUrl}" 
+                data-team="${team}" 
+                data-position="${position}"
+                data-height="${height}"
+                data-weight="${weight}">
+                ${headshotUrl ? `<img src="${headshotUrl}" alt="${player.name}" class="player-headshot">` : ''}
+                <div class="player-info">
+                    <strong>${player.name}</strong>
+                    ${position ? `<span class="position">${position}</span>` : ''}
+                    ${team ? `<span class="team">${team}</span>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    resultsDiv.classList.add('active');
+}
+
 // Search players
 async function searchPlayers(query, resultsDiv) {
     if (!query || query.length < 2) {
@@ -52,75 +93,42 @@ async function searchPlayers(query, resultsDiv) {
     }
 }
 
-// Display search results
-function displaySearchResults(players, resultsDiv) {
-    if (players.length === 0) {
-        resultsDiv.innerHTML = '<div class="no-results">No players found</div>';
-        resultsDiv.classList.add('active');
-        return;
+// Fetch and display player stats
+async function fetchAndDisplayStats() {
+    const statsType = getSelectedStatsType();
+
+    try {
+        // Fetch stats and accolades for both players in parallel
+        const [statsDataA, statsDataB, accoladesDataA, accoladesDataB] = await Promise.all([
+            fetch(`${API_BASE}/athletes/${selectedPlayerA.id}/season-stats?type=${statsType}`).then(r => r.json()),
+            fetch(`${API_BASE}/athletes/${selectedPlayerB.id}/season-stats?type=${statsType}`).then(r => r.json()),
+            fetch(`${API_BASE}/athletes/${selectedPlayerA.id}/accolades`).then(r => r.json()),
+            fetch(`${API_BASE}/athletes/${selectedPlayerB.id}/accolades`).then(r => r.json())
+        ]);
+
+        displayPlayerStats(statsDataA, selectedPlayerA, statsA);
+        displayPlayerStats(statsDataB, selectedPlayerB, statsB);
+
+        displayPlayerAccolades(accoladesDataA, selectedPlayerA, accoladesA);
+        displayPlayerAccolades(accoladesDataB, selectedPlayerB, accoladesB);
+
+        playerStats.classList.remove('hidden');
+        playerAccolades.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error fetching stats:', error);
     }
-    
-    resultsDiv.innerHTML = players.map(player => {
-        const playerId = player.ID || player.id || player.athleteId;
-        const headshotUrl = player.headshotUrl || '';
-        const team = player.team || '';
-        const position = player.position || '';
-        
-        return `
-            <div class="result-item" data-player-id="${playerId}" data-player-name="${player.name}" data-headshot-url="${headshotUrl}" data-team="${team}" data-position="${position}">
-                ${headshotUrl ? `<img src="${headshotUrl}" alt="${player.name}" class="player-headshot">` : ''}
-                <div class="player-info">
-                    <strong>${player.name}</strong>
-                    ${position ? `<span class="position">${position}</span>` : ''}
-                    ${team ? `<span class="team">${team}</span>` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    resultsDiv.classList.add('active');
 }
 
-// Select player
-function selectPlayer(id, name, playerKey, headshotUrl = '', team = '', position = '') {
-    // Convert id to number
-    const playerId = parseInt(id, 10);
-    
-    const playerInfo = `
-        <div class="player-details">
-            <span class="player-name">${name}</span>
-            ${position ? `<span class="player-position">${position}</span>` : ''}
-            ${team ? `<span class="player-team">${team}</span>` : ''}
-        </div>
-    `;
-    
-    if (playerKey === 'A') {
-        selectedPlayerA = { id: playerId, name, headshotUrl, team, position };
-        selectedA.innerHTML = `
-            <div class="selected-info">
-                ${headshotUrl ? `<img src="${headshotUrl}" alt="${name}" class="selected-headshot">` : ''}
-                ${playerInfo}
-                <button class="remove-btn" onclick="clearPlayer('A')">✕</button>
-            </div>
-        `;
-        searchInputA.value = '';
-        resultsA.innerHTML = '';
-        resultsA.classList.remove('active');
+// Update compare button state
+function updateCompareButton() {
+    compareBtn.disabled = !selectedPlayerA || !selectedPlayerB;
+
+    // Show/update stats when both players are selected
+    if (selectedPlayerA && selectedPlayerB) {
+        fetchAndDisplayStats();
     } else {
-        selectedPlayerB = { id: playerId, name, headshotUrl, team, position };
-        selectedB.innerHTML = `
-            <div class="selected-info">
-                ${headshotUrl ? `<img src="${headshotUrl}" alt="${name}" class="selected-headshot">` : ''}
-                ${playerInfo}
-                <button class="remove-btn" onclick="clearPlayer('B')">✕</button>
-            </div>
-        `;
-        searchInputB.value = '';
-        resultsB.innerHTML = '';
-        resultsB.classList.remove('active');
+        playerStats.classList.add('hidden');
     }
-    
-    updateCompareButton();
 }
 
 // Clear player selection
@@ -135,36 +143,56 @@ function clearPlayer(playerKey) {
     updateCompareButton();
 }
 
-// Update compare button state
-function updateCompareButton() {
-    compareBtn.disabled = !selectedPlayerA || !selectedPlayerB;
+// Select player
+function selectPlayer(
+    id,
+    name,
+    playerKey,
+    headshotUrl = '',
+    team = '',
+    position = '',
+    height = '',
+    weight = ''
+) {
+    // Convert id to number
+    const playerId = parseInt(id, 10);
     
-    // Show/update stats when both players are selected
-    if (selectedPlayerA && selectedPlayerB) {
-        fetchAndDisplayStats();
+    const playerInfo = `
+        <div class="player-details">
+            <span class="player-name">${name}</span>
+            ${position ? `<span class="player-position">${position}</span>` : ''}
+            ${team ? `<span class="player-team">${team}</span>` : ''}
+            ${(height || weight) ? `<span class="player-bio">${[height, weight].filter(Boolean).join(' • ')}</span>` : ''}
+        </div>
+    `;
+    
+    if (playerKey === 'A') {
+        selectedPlayerA = { id: playerId, name, headshotUrl, team, position, height, weight };
+        selectedA.innerHTML = `
+            <div class="selected-info">
+                ${headshotUrl ? `<img src="${headshotUrl}" alt="${name}" class="selected-headshot">` : ''}
+                ${playerInfo}
+                <button class="remove-btn" onclick="clearPlayer('A')">✕</button>
+            </div>
+        `;
+        searchInputA.value = '';
+        resultsA.innerHTML = '';
+        resultsA.classList.remove('active');
     } else {
-        playerStats.classList.add('hidden');
+        selectedPlayerB = { id: playerId, name, headshotUrl, team, position, height, weight };
+        selectedB.innerHTML = `
+            <div class="selected-info">
+                ${headshotUrl ? `<img src="${headshotUrl}" alt="${name}" class="selected-headshot">` : ''}
+                ${playerInfo}
+                <button class="remove-btn" onclick="clearPlayer('B')">✕</button>
+            </div>
+        `;
+        searchInputB.value = '';
+        resultsB.innerHTML = '';
+        resultsB.classList.remove('active');
     }
-}
-
-// Fetch and display player stats
-async function fetchAndDisplayStats() {
-    const statsType = getSelectedStatsType();
     
-    try {
-        // Fetch stats for both players in parallel
-        const [statsDataA, statsDataB] = await Promise.all([
-            fetch(`${API_BASE}/athletes/${selectedPlayerA.id}/season-stats?type=${statsType}`).then(r => r.json()),
-            fetch(`${API_BASE}/athletes/${selectedPlayerB.id}/season-stats?type=${statsType}`).then(r => r.json())
-        ]);
-        
-        displayPlayerStats(statsDataA, selectedPlayerA, statsA);
-        displayPlayerStats(statsDataB, selectedPlayerB, statsB);
-        
-        playerStats.classList.remove('hidden');
-    } catch (error) {
-        console.error('Error fetching stats:', error);
-    }
+    updateCompareButton();
 }
 
 // Display individual player stats
@@ -248,7 +276,11 @@ function displayPlayerStats(statsData, player, container) {
     
     container.innerHTML = `
         <h3>${player.name}</h3>
-        ${player.position ? `<p class="stat-position">${player.position} • ${player.team || ''}</p>` : ''}
+        ${(
+            [player.position || player.team || player.height || player.weight].some(Boolean)
+        ) ? `<p class="stat-position">
+              ${[player.position, player.team, player.height, player.weight].filter(Boolean).join(' • ')}
+            </p>` : ''}
         
         <div class="career-summary">
             <h4>Career Overview</h4>
@@ -269,10 +301,74 @@ function displayPlayerStats(statsData, player, container) {
     `;
 }
 
+// Display individual player accolades
+function displayPlayerAccolades(accoladesData, player, container) {
+    if (!accoladesData || !accoladesData.awards || accoladesData.awards.length === 0) {
+        container.innerHTML = `
+            <div class="no-accolades">
+                <h3>${player.name}</h3>
+                <p>No accolades available</p>
+            </div>
+        `;
+        return;
+    }
+
+    const awardsHtml = accoladesData.awards.map(award => {
+        const yearDisplay = award.year ? `<span class="award-year">(${award.year})</span>` : '';
+        const descDisplay = award.description ? `<p class="award-desc">${award.description}</p>` : '';
+        return `
+            <div class="award-item">
+                <h4 class="award-title">${award.title} ${yearDisplay}</h4>
+                ${descDisplay}
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="accolades-content">
+            <h3>${player.name}</h3>
+            <div class="awards-list">
+                ${awardsHtml}
+            </div>
+        </div>
+    `;
+}
+
 // Get selected stats type
 function getSelectedStatsType() {
     const selected = document.querySelector('input[name="statsType"]:checked');
     return parseInt(selected.value);
+}
+
+// Display comparison results
+function displayComparisonResults(result) {
+    // Update winner banner
+    document.getElementById('overallWinner').textContent = result.overallWinner || 'Tie';
+
+    // Update 1v1 prediction
+    document.getElementById('oneVsOne').textContent = result.oneVsOnePrediction || 'N/A';
+
+    // Update player strengths with names
+    document.getElementById('player1NameStrengths').textContent =
+        `${selectedPlayerA.name} Strengths`;
+    document.getElementById('player1Strengths').textContent =
+        result.player1Strengths || 'N/A';
+
+    document.getElementById('player2NameStrengths').textContent =
+        `${selectedPlayerB.name} Strengths`;
+    document.getElementById('player2Strengths').textContent =
+        result.player2Strengths || 'N/A';
+
+    // Update conclusion
+    document.getElementById('conclusion').textContent = result.conclusion || 'N/A';
+
+    // Update full analysis
+    document.getElementById('fullAnalysis').textContent =
+        result.analysis || 'No detailed analysis available';
+
+    // Show results
+    comparisonResults.classList.remove('hidden');
+    comparisonResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // Compare players
@@ -311,37 +407,6 @@ async function comparePlayers() {
     }
 }
 
-// Display comparison results
-function displayComparisonResults(result) {
-    // Update winner banner
-    document.getElementById('overallWinner').textContent = result.overallWinner || 'Tie';
-
-    // Update 1v1 prediction
-    document.getElementById('oneVsOne').textContent = result.oneVsOnePrediction || 'N/A';
-
-    // Update player strengths with names
-    document.getElementById('player1NameStrengths').textContent = 
-        `${selectedPlayerA.name} Strengths`;
-    document.getElementById('player1Strengths').textContent = 
-        result.player1Strengths || 'N/A';
-
-    document.getElementById('player2NameStrengths').textContent = 
-        `${selectedPlayerB.name} Strengths`;
-    document.getElementById('player2Strengths').textContent = 
-        result.player2Strengths || 'N/A';
-
-    // Update conclusion
-    document.getElementById('conclusion').textContent = result.conclusion || 'N/A';
-
-    // Update full analysis
-    document.getElementById('fullAnalysis').textContent = 
-        result.analysis || 'No detailed analysis available';
-
-    // Show results
-    comparisonResults.classList.remove('hidden');
-    comparisonResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
 // Event listeners
 searchInputA.addEventListener('input', debounce((e) => {
     searchPlayers(e.target.value, resultsA);
@@ -355,14 +420,32 @@ searchInputB.addEventListener('input', debounce((e) => {
 resultsA.addEventListener('click', (e) => {
     const item = e.target.closest('.result-item');
     if (item) {
-        selectPlayer(item.dataset.playerId, item.dataset.playerName, 'A', item.dataset.headshotUrl, item.dataset.team, item.dataset.position);
+        selectPlayer(
+            item.dataset.playerId,
+            item.dataset.playerName,
+            'A',
+            item.dataset.headshotUrl,
+            item.dataset.team,
+            item.dataset.position,
+            item.dataset.height,
+            item.dataset.weight
+        );
     }
 });
 
 resultsB.addEventListener('click', (e) => {
     const item = e.target.closest('.result-item');
     if (item) {
-        selectPlayer(item.dataset.playerId, item.dataset.playerName, 'B', item.dataset.headshotUrl, item.dataset.team, item.dataset.position);
+        selectPlayer(
+            item.dataset.playerId,
+            item.dataset.playerName,
+            'B',
+            item.dataset.headshotUrl,
+            item.dataset.team,
+            item.dataset.position,
+            item.dataset.height,
+            item.dataset.weight
+        );
     }
 });
 

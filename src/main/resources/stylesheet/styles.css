@@ -307,6 +307,97 @@ main {
     opacity: 0.5;
 }
 
+/* Player Accolades Section */
+.player-accolades-section {
+    margin: 40px 0;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.player-accolades-section h2 {
+    text-align: center;
+    color: var(--text-primary);
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+.accolades-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.accolades-column {
+    background: var(--background);
+    padding: 25px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.accolades-column:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.accolades-content h3 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.awards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.award-item {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+    transition: transform 0.2s;
+}
+
+.award-item:hover {
+    transform: translateX(5px);
+}
+
+.award-title {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.award-year {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: normal;
+}
+
+.award-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.no-accolades {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px 20px;
+}
+
+.no-accolades h3 {
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
 /* Player Stats Section */
 .player-stats-section {
     margin: 40px 0;

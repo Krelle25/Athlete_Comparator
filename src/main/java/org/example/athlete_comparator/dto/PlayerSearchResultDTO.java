@@ -10,9 +10,9 @@ package org.example.athlete_comparator.dto;
  * {
  *   "ID": 1966,
  *   "name": "LeBron James",
- *   "league": "nba",
+ *   "league": "NBA",
  *   "team": "Los Angeles Lakers",
- *   "position": "SF",
+ *   "position": "F",
  *   "headshotUrl": "https://a.espncdn.com/i/headshots/nba/players/full/1966.png"
  * }
  */
@@ -23,6 +23,8 @@ public class PlayerSearchResultDTO {
     private String team;
     private String position;
     private String headshotUrl;
+    private String displayHeight;
+    private String displayWeight;
 
     public PlayerSearchResultDTO() {
     }
@@ -82,5 +84,21 @@ public class PlayerSearchResultDTO {
 
     public void setHeadshotUrl(String headshotUrl) {
         this.headshotUrl = headshotUrl;
+    }
+
+    public String getDisplayHeight() {
+        return displayHeight;
+    }
+
+    public void setDisplayHeight(String displayHeight) {
+        this.displayHeight = displayHeight;
+    }
+
+    public String getDisplayWeight() {
+        return displayWeight;
+    }
+
+    public void setDisplayWeight(String displayWeight) {
+        this.displayWeight = displayWeight;
     }
 }

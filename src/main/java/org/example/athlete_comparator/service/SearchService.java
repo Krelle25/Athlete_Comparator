@@ -24,18 +24,28 @@ public class SearchService {
         
         List<PlayerSearchResultDTO> results = espnSearchClient.searchPlayers(searchText.trim());
         
-        // Enrich results with position data from bio endpoint
+        // Enrich results with position, height, and weight data from bio endpoint
         for (PlayerSearchResultDTO player : results) {
             try {
-                JsonNode bio = espnStatsClient.getAthleteBio(player.getID());
+                JsonNode bio = espnStatsClient.getAthleteInfo(player.getID());
                 if (bio != null) {
                     String position = bio.path("position").path("abbreviation").asText("");
                     if (!position.isEmpty()) {
                         player.setPosition(position);
                     }
+                    
+                    String displayHeight = bio.path("displayHeight").asText("");
+                    if (!displayHeight.isEmpty()) {
+                        player.setDisplayHeight(displayHeight);
+                    }
+                    
+                    String displayWeight = bio.path("displayWeight").asText("");
+                    if (!displayWeight.isEmpty()) {
+                        player.setDisplayWeight(displayWeight);
+                    }
                 }
             } catch (Exception e) {
-                // Continue without position if fetch fails
+                // Continue without position/height/weight if fetch fails
             }
         }
         
