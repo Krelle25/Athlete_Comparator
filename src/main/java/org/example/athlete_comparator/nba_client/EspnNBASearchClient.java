@@ -21,7 +21,7 @@ public class EspnSearchClient {
     private final String searchBase;
     private static final Pattern UID_ATHLETE = Pattern.compile("a:(\\d+)");
 
-    public EspnSearchClient(@Value("${espn.api.search}") String searchBase,
+    public EspnSearchClient(@Value("${espn.nba.api.search}") String searchBase,
                             @Value("${espn.api.timeout:5000}") int timeout,
                             ObjectMapper objectMapper)
     {
