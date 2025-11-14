@@ -51,7 +51,7 @@ public class EspnNBASearchClient {
     }
 
     public List<PlayerSearchResultDTO> searchPlayers(String query) {
-        String url = searchBase + "?limit=50&query=" + encode(query);
+        String url = searchBase + "?limit=20&query=" + encode(query);
 
         JsonNode root = restClient.get()
                 .uri(url)

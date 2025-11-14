@@ -1,7 +1,7 @@
 package org.example.athlete_comparator.nba_api;
 
-import org.example.athlete_comparator.nba_dto.CompareRequestDTO;
-import org.example.athlete_comparator.nba_dto.CompareResultDTO;
+import org.example.athlete_comparator.shared_dto.CompareRequestDTO;
+import org.example.athlete_comparator.shared_dto.CompareResultDTO;
 import org.example.athlete_comparator.nba_service.ComparisonService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 4. Returns structured comparison results to the frontend
  */
 @RestController
-@RequestMapping("/api")  // All endpoints start with /api
+@RequestMapping("/api/nba")  // All endpoints start with /api/nba
 public class NBACompareController {
 
     private final ComparisonService comparisonService;

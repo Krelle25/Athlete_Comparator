@@ -27,6 +27,14 @@ public class StatsService {
         return m.find() ? Integer.parseInt(m.group(1)) : -1;
     }
 
+    private static double nz(Double d) {
+        return d == null ? 0.0 : d;
+    }
+
+    private static double r(double v) {
+        return Math.rint(v);
+    }
+
     private SeasonStatDTO mapAveragesToDto(JsonNode avg, int season, int type) {
         SeasonStatDTO dto = new SeasonStatDTO();
         dto.setSeason(season);
@@ -81,14 +89,6 @@ public class StatsService {
             }
         }
         return 0.0;
-    }
-
-    private static double nz(Double d) {
-        return d == null ? 0.0 : d;
-    }
-
-    private static double r(double v) {
-        return Math.rint(v);
     }
 
     /**

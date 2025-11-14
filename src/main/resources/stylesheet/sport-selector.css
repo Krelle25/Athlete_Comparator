@@ -78,15 +78,6 @@ body {
     border-top: 4px solid #d20a0a;
 }
 
-.sport-card.coming-soon {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.sport-card.coming-soon:hover {
-    transform: none;
-}
-
 .coming-soon-badge {
     background: #fbbf24;
     color: white;

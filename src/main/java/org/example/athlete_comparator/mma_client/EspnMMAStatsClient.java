@@ -35,8 +35,20 @@ public class EspnMMAStatsClient {
                 .build();
     }
 
-    public JsonNode getFightRecords(long athleteID) {
-        String url = coreBase + "/athletes/" + athleteID + "/records?lang=en&region=us";
+    public JsonNode getFighterInfo(long fighterID) {
+        String url = coreBase + "/athletes/" + fighterID;
+        try {
+            return restClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public JsonNode getFightRecords(long fighterID) {
+        String url = coreBase + "/athletes/" + fighterID + "/records?lang=en&region=us";
         try {
             return restClient.get()
                     .uri(url)
@@ -47,8 +59,8 @@ public class EspnMMAStatsClient {
         }
     }
 
-    public JsonNode getFighterInfo(long fighterID) {
-        String url = coreBase + "/athletes/" + fighterID;
+    public JsonNode getStatistics(long fighterID) {
+        String url = coreBase + "/athletes/" + fighterID + "/statistics/0?lang=en&region=us";
         try {
             return restClient.get()
                     .uri(url)

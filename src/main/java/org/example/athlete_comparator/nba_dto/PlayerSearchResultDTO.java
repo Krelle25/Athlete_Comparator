@@ -29,15 +29,17 @@ public class PlayerSearchResultDTO {
     public PlayerSearchResultDTO() {
     }
 
-    public PlayerSearchResultDTO(long ID, String name, String league, String team, String position, String headshotUrl) {
+    public PlayerSearchResultDTO(long ID, String name, String league, String team, String position, String headshotUrl, String displayHeight, String displayWeight) {
         this.ID = ID;
         this.name = name;
         this.league = league;
         this.team = team;
         this.position = position;
         this.headshotUrl = headshotUrl;
+        this.displayHeight = displayHeight;
+        this.displayWeight = displayWeight;
     }
-    
+
     public long getID() {
         return ID;
     }

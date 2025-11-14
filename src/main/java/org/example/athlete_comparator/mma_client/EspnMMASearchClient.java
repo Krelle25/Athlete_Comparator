@@ -76,10 +76,8 @@ public class EspnMMASearchClient {
                 FighterSearchResultDTO dto = new FighterSearchResultDTO();
                 dto.setID(athleteID);
                 dto.setName(content.path("displayName").asText(""));
-                dto.setSport(sport);
                 dto.setWeightClass(content.path("subtitle").asText(""));
                 dto.setNickname("");
-                dto.setRecord("");
                 dto.setHeadshotUrl(content.path("image").path("default").asText(""));
 
                 out.add(dto);
