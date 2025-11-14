@@ -8,17 +8,30 @@ public class FighterInfoDTO {
     private String height;
     private String weight;
     private String reach;
-    private String legReach;
     private String country;
     private int age;
-    
-    // Fight Record
-    private int wins;
-    private int losses;
-    private int draws;
-    private String record;
+    private String gender;
+    private String styles;
+    private String accolades;
+    private String stance;
 
     public FighterInfoDTO() {
+    }
+
+    public FighterInfoDTO(String name, String nickname, String headshotUrl, String weightClass, String height, String weight, String reach, String country, int age, String gender, String styles, String accolades, String stance) {
+        this.name = name;
+        this.nickname = nickname;
+        this.headshotUrl = headshotUrl;
+        this.weightClass = weightClass;
+        this.height = height;
+        this.weight = weight;
+        this.reach = reach;
+        this.country = country;
+        this.age = age;
+        this.gender = gender;
+        this.styles = styles;
+        this.accolades = accolades;
+        this.stance = stance;
     }
 
     public String getName() {
@@ -77,14 +90,6 @@ public class FighterInfoDTO {
         this.reach = reach;
     }
 
-    public String getLegReach() {
-        return legReach;
-    }
-
-    public void setLegReach(String legReach) {
-        this.legReach = legReach;
-    }
-
     public String getCountry() {
         return country;
     }
@@ -101,35 +106,35 @@ public class FighterInfoDTO {
         this.age = age;
     }
 
-    public int getWins() {
-        return wins;
+    public String getGender() {
+        return gender;
     }
 
-    public void setWins(int wins) {
-        this.wins = wins;
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
-    public int getLosses() {
-        return losses;
+    public String getStyles() {
+        return styles;
     }
 
-    public void setLosses(int losses) {
-        this.losses = losses;
+    public void setStyles(String styles) {
+        this.styles = styles;
     }
 
-    public int getDraws() {
-        return draws;
+    public String getAccolades() {
+        return accolades;
     }
 
-    public void setDraws(int draws) {
-        this.draws = draws;
+    public void setAccolades(String accolades) {
+        this.accolades = accolades;
     }
 
-    public String getRecord() {
-        return record;
+    public String getStance() {
+        return stance;
     }
 
-    public void setRecord(String record) {
-        this.record = record;
+    public void setStance(String stance) {
+        this.stance = stance;
     }
 }

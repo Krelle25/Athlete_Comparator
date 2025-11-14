@@ -3,6 +3,7 @@ package org.example.athlete_comparator.mma_service;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.example.athlete_comparator.mma_client.EspnMMAStatsClient;
 import org.example.athlete_comparator.mma_dto.FighterInfoDTO;
+import org.example.athlete_comparator.mma_dto.FighterRecordDTO;
 import org.example.athlete_comparator.mma_dto.FighterStatDTO;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,6 @@ public class MMAStatsService {
 
     public FighterInfoDTO getFighterInfo(long fighterID) {
         JsonNode fighterData = espnMMAStatsClient.getFighterInfo(fighterID);
-        JsonNode recordsData = espnMMAStatsClient.getFightRecords(fighterID);
 
         if (fighterData == null) {
             log.warn("Failed to fetch fighter info for {}", fighterID);
@@ -39,17 +39,25 @@ public class MMAStatsService {
         FighterInfoDTO info = new FighterInfoDTO();
 
         // Basic info
+        info.setGender(fighterData.path("gender").asText(""));
+        info.setStyles(fighterData.path("styles").asText(""));
+        info.setStance(fighterData.path("stance").asText(""));
         info.setName(fighterData.path("displayName").asText(""));
         info.setNickname(fighterData.path("nickname").asText(""));
-        info.setWeightClass(fighterData.path("position").path("name").asText(""));
         info.setHeight(fighterData.path("displayHeight").asText(""));
         info.setWeight(fighterData.path("displayWeight").asText(""));
         info.setAge(fighterData.path("age").asInt(0));
-        
-        // Country
-        JsonNode citizenship = fighterData.path("citizenship");
-        if (citizenship.isArray() && citizenship.size() > 0) {
-            info.setCountry(citizenship.get(0).asText(""));
+
+        // Weight class - direct from weightClass.text
+        JsonNode weightClassNode = fighterData.path("weightClass");
+        if (!weightClassNode.isMissingNode()) {
+            info.setWeightClass(weightClassNode.path("text").asText(""));
+        }
+
+        // Country - direct string, not array
+        String citizenship = fighterData.path("citizenship").asText("");
+        if (!citizenship.isEmpty()) {
+            info.setCountry(citizenship);
         }
 
         // Headshot
@@ -58,46 +66,15 @@ public class MMAStatsService {
             info.setHeadshotUrl(headshot.path("href").asText(""));
         }
 
-        // Reach stats
-        JsonNode displayMeasurements = fighterData.path("displayMeasurements");
-        if (displayMeasurements.isArray()) {
-            for (JsonNode measurement : displayMeasurements) {
-                String type = measurement.path("type").asText("");
-                String value = measurement.path("displayValue").asText("");
-                
-                if ("reach".equalsIgnoreCase(type)) {
-                    info.setReach(value);
-                } else if ("legReach".equalsIgnoreCase(type)) {
-                    info.setLegReach(value);
-                }
-            }
+        // Reach - direct from displayReach at root level
+        String reach = fighterData.path("displayReach").asText("");
+        if (!reach.isEmpty()) {
+            info.setReach(reach);
         }
 
-        // Records - extract wins/losses/draws
-        if (recordsData != null && recordsData.has("items")) {
-            JsonNode items = recordsData.path("items");
-            if (items.isArray()) {
-                for (JsonNode item : items) {
-                    String summary = item.path("summary").asText("");
-                    if (!summary.isEmpty()) {
-                        info.setRecord(summary);
-                        // Parse "X-Y-Z" format
-                        String[] parts = summary.split("-");
-                        if (parts.length >= 2) {
-                            try {
-                                info.setWins(Integer.parseInt(parts[0].trim()));
-                                info.setLosses(Integer.parseInt(parts[1].trim()));
-                                if (parts.length >= 3) {
-                                    info.setDraws(Integer.parseInt(parts[2].trim()));
-                                }
-                            } catch (NumberFormatException e) {
-                                log.warn("Failed to parse record: {}", summary);
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
+        String accolades = fighterData.path("accolades").asText("");
+        if (!accolades.isEmpty()) {
+            info.setAccolades(accolades);
         }
 
         return info;

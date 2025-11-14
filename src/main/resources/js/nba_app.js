@@ -394,18 +394,13 @@ async function comparePlayers() {
             })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Response status:', response.status);
-            console.error('Response error:', errorText);
-            throw new Error(`Comparison failed: ${response.status} - ${errorText}`);
-        }
+        if (!response.ok) throw new Error('Comparison failed');
         
         const result = await response.json();
         displayComparisonResults(result);
     } catch (error) {
         console.error('Comparison error:', error);
-        alert('Comparison failed. Please try again.\n\nError: ' + error.message);
+        alert('Comparison failed. Please try again.');
     } finally {
         loading.classList.add('hidden');
         compareBtn.disabled = false;

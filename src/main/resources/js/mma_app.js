@@ -92,19 +92,21 @@ async function searchFighters(query, resultsDiv) {
 // Fetch and display fighter info and stats
 async function fetchAndDisplayFighterData() {
     try {
-        // Fetch info and stats for both fighters in parallel
-        const [infoA_data, infoB_data, statsA_data, statsB_data] = await Promise.all([
+        // Fetch info, stats, and records for both fighters in parallel
+        const [infoA_data, infoB_data, statsA_data, statsB_data, recordA_data, recordB_data] = await Promise.all([
             fetch(`${API_BASE}/fighters/${selectedFighterA.id}/info`).then(r => r.json()),
             fetch(`${API_BASE}/fighters/${selectedFighterB.id}/info`).then(r => r.json()),
             fetch(`${API_BASE}/fighters/${selectedFighterA.id}/stats`).then(r => r.json()),
-            fetch(`${API_BASE}/fighters/${selectedFighterB.id}/stats`).then(r => r.json())
+            fetch(`${API_BASE}/fighters/${selectedFighterB.id}/stats`).then(r => r.json()),
+            fetch(`${API_BASE}/fighters/${selectedFighterA.id}/record`).then(r => r.json()),
+            fetch(`${API_BASE}/fighters/${selectedFighterB.id}/record`).then(r => r.json())
         ]);
 
         displayFighterInfo(infoA_data, infoA);
         displayFighterInfo(infoB_data, infoB);
         
-        displayFighterStats(statsA_data, selectedFighterA, statsA);
-        displayFighterStats(statsB_data, selectedFighterB, statsB);
+        displayFighterStats(statsA_data, recordA_data, selectedFighterA, statsA);
+        displayFighterStats(statsB_data, recordB_data, selectedFighterB, statsB);
 
         fighterInfo.classList.remove('hidden');
         fighterStats.classList.remove('hidden');
@@ -123,12 +125,12 @@ function displayFighterInfo(info, container) {
     container.innerHTML = `
         <h3>${info.name || 'Unknown'}</h3>
         ${info.nickname ? `<p class="info-nickname">"${info.nickname}"</p>` : ''}
-        
-        <div class="info-record">
-            Record: ${info.record || `${info.wins || 0}-${info.losses || 0}-${info.draws || 0}`}
-        </div>
 
         <div class="info-section">
+        <div class="info-row">
+                <span>Gender:</span>
+                <strong>${info.gender || 'N/A'}</strong>
+            </div>
             <div class="info-row">
                 <span>Weight Class:</span>
                 <strong>${info.weightClass || 'N/A'}</strong>
@@ -145,12 +147,6 @@ function displayFighterInfo(info, container) {
                 <span>Reach:</span>
                 <strong>${info.reach || 'N/A'}</strong>
             </div>
-            ${info.legReach ? `
-            <div class="info-row">
-                <span>Leg Reach:</span>
-                <strong>${info.legReach}</strong>
-            </div>
-            ` : ''}
             <div class="info-row">
                 <span>Age:</span>
                 <strong>${info.age || 'N/A'}</strong>
@@ -164,7 +160,7 @@ function displayFighterInfo(info, container) {
 }
 
 // Display fighter stats
-function displayFighterStats(stats, fighter, container) {
+function displayFighterStats(stats, record, fighter, container) {
     if (!stats) {
         container.innerHTML = '<div class="no-stats">No statistics available</div>';
         return;
@@ -178,11 +174,11 @@ function displayFighterStats(stats, fighter, container) {
             <h4>Career Summary</h4>
             <div class="stat-row">
                 <span>Record:</span>
-                <strong>${stats.wins || 0}-${stats.losses || 0}-${stats.draws || 0}</strong>
+                <strong>${record ? `${record.wins || 0}-${record.losses || 0}-${record.draws || 0}` : 'N/A'}</strong>
             </div>
             <div class="stat-row">
                 <span>Win Rate:</span>
-                <strong>${stats.winPercentage || 0}%</strong>
+                <strong>${record && record.winRate ? record.winRate.toFixed(1) : '0'}%</strong>
             </div>
         </div>
 
@@ -339,18 +335,13 @@ async function compareFighters() {
             })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Response status:', response.status);
-            console.error('Response error:', errorText);
-            throw new Error(`Comparison failed: ${response.status} - ${errorText}`);
-        }
+        if (!response.ok) throw new Error('Comparison failed');
         
         const result = await response.json();
         displayComparisonResults(result);
     } catch (error) {
         console.error('Comparison error:', error);
-        alert('Comparison failed. Please try again.\n\nError: ' + error.message);
+        alert('Comparison failed. Please try again.');
     } finally {
         loading.classList.add('hidden');
         compareBtn.disabled = false;
