@@ -1,4 +1,4 @@
-package org.example.athlete_comparator.nba_dto;
+package org.example.athlete_comparator.shared_dto;
 
 /**
  * Data Transfer Object (DTO) for comparison requests from the frontend.

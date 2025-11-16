@@ -1,8 +1,8 @@
 package org.example.athlete_comparator.nba_service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.example.athlete_comparator.nba_client.EspnSearchClient;
-import org.example.athlete_comparator.nba_client.EspnStatsClient;
+import org.example.athlete_comparator.nba_client.EspnNBASearchClient;
+import org.example.athlete_comparator.nba_client.EspnNBAStatsClient;
 import org.example.athlete_comparator.nba_dto.PlayerSearchResultDTO;
 import org.springframework.stereotype.Service;
 
@@ -11,23 +11,23 @@ import java.util.List;
 @Service
 public class SearchService {
 
-    private final EspnSearchClient espnSearchClient;
-    private final EspnStatsClient espnStatsClient;
+    private final EspnNBASearchClient espnNBASearchClient;
+    private final EspnNBAStatsClient espnNBAStatsClient;
 
-    public SearchService(EspnSearchClient espnSearchClient, EspnStatsClient espnStatsClient) {
-        this.espnSearchClient = espnSearchClient;
-        this.espnStatsClient = espnStatsClient;
+    public SearchService(EspnNBASearchClient espnNBASearchClient, EspnNBAStatsClient espnNBAStatsClient) {
+        this.espnNBASearchClient = espnNBASearchClient;
+        this.espnNBAStatsClient = espnNBAStatsClient;
     }
 
     public List<PlayerSearchResultDTO> search(String searchText) {
         if (searchText == null || searchText.isBlank()) return List.of();
         
-        List<PlayerSearchResultDTO> results = espnSearchClient.searchPlayers(searchText.trim());
+        List<PlayerSearchResultDTO> results = espnNBASearchClient.searchPlayers(searchText.trim());
         
         // Enrich results with position, height, and weight data from bio endpoint
         for (PlayerSearchResultDTO player : results) {
             try {
-                JsonNode bio = espnStatsClient.getAthleteInfo(player.getID());
+                JsonNode bio = espnNBAStatsClient.getAthleteInfo(player.getID());
                 if (bio != null) {
                     String position = bio.path("position").path("abbreviation").asText("");
                     if (!position.isEmpty()) {

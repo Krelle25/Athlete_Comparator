@@ -1,9 +1,9 @@
 package org.example.athlete_comparator.nba_service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.example.athlete_comparator.nba_client.EspnStatsClient;
-import org.example.athlete_comparator.nba_client.OpenAiClient;
-import org.example.athlete_comparator.nba_dto.CompareResultDTO;
+import org.example.athlete_comparator.nba_client.EspnNBAStatsClient;
+import org.example.athlete_comparator.shared_client.OpenAiClient;
+import org.example.athlete_comparator.shared_dto.CompareResultDTO;
 import org.example.athlete_comparator.nba_dto.SeasonStatDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +16,12 @@ public class ComparisonService {
 
     private static final Logger log = LoggerFactory.getLogger(ComparisonService.class);
     private final StatsService statsService;
-    private final EspnStatsClient espnStatsClient;
+    private final EspnNBAStatsClient espnNBAStatsClient;
     private final OpenAiClient openAiClient;
 
-    public ComparisonService(StatsService statsService, EspnStatsClient espnStatsClient, OpenAiClient openAiClient) {
+    public ComparisonService(StatsService statsService, EspnNBAStatsClient espnNBAStatsClient, OpenAiClient openAiClient) {
         this.statsService = statsService;
-        this.espnStatsClient = espnStatsClient;
+        this.espnNBAStatsClient = espnNBAStatsClient;
         this.openAiClient = openAiClient;
     }
 
@@ -67,7 +67,7 @@ public class ComparisonService {
      */
     private String getPlayerName(long athleteId) {
         try {
-            JsonNode athleteInfo = espnStatsClient.getAthleteInfo(athleteId);
+            JsonNode athleteInfo = espnNBAStatsClient.getAthleteInfo(athleteId);
             if (athleteInfo != null) {
                 String fullName = athleteInfo.path("displayName").asText("");
                 if (!fullName.isEmpty()) {
@@ -177,8 +177,8 @@ public class ComparisonService {
         switch (key) {
             case "OVERALL_WINNER" -> result.setOverallWinner(value);
             case "ONE_VS_ONE" -> result.setOneVsOnePrediction(value);
-            case "PLAYER1_STRENGTHS" -> result.setPlayer1Strengths(value);
-            case "PLAYER2_STRENGTHS" -> result.setPlayer2Strengths(value);
+            case "PLAYER1_STRENGTHS" -> result.setAthlete1Strengths(value);
+            case "PLAYER2_STRENGTHS" -> result.setAthlete2Strengths(value);
             case "CONCLUSION" -> result.setConclusion(value);
         }
     }
@@ -192,8 +192,8 @@ public class ComparisonService {
      */
     private CompareResultDTO parseAiResponse(String response, String player1Name, String player2Name) {
         CompareResultDTO result = new CompareResultDTO();
-        result.setPlayer1Name(player1Name);
-        result.setPlayer2Name(player2Name);
+        result.setAthlete1Name(player1Name);
+        result.setAthlete2Name(player2Name);
 
         try {
             // Parse each section, handling multi-line content
@@ -248,7 +248,7 @@ public class ComparisonService {
             
             log.debug("Parsed result - Winner: {}, 1v1: {}, P1 Strengths: {}, P2 Strengths: {}, Conclusion: {}",
                     result.getOverallWinner(), result.getOneVsOnePrediction(), 
-                    result.getPlayer1Strengths(), result.getPlayer2Strengths(), result.getConclusion());
+                    result.getAthlete1Strengths(), result.getAthlete2Strengths(), result.getConclusion());
         } catch (Exception e) {
             log.error("Error parsing AI response", e);
             // If parsing fails, still return the raw analysis

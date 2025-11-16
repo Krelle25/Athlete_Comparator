@@ -1,5 +1,5 @@
 // API Base URL
-const API_BASE = '/api';
+const API_BASE = '/api/nba';
 
 // State management
 let selectedPlayerA = null;
@@ -91,6 +91,112 @@ async function searchPlayers(query, resultsDiv) {
         console.error('Search error:', error);
         resultsDiv.innerHTML = '<div class="error">Search failed. Please try again.</div>';
     }
+}
+
+// Display individual player stats
+function displayPlayerStats(statsData, player, container) {
+    if (!statsData || statsData.length === 0) {
+        container.innerHTML = `
+            <div class="no-stats">
+                <h3>${player.name}</h3>
+                <p>No statistics available</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Separate regular season and playoff stats
+    const regularSeasonStats = statsData.filter(s => s.type === 2);
+    const playoffStats = statsData.filter(s => s.type === 3);
+
+    // Determine which stats to show based on what's selected
+    const statsToDisplay = regularSeasonStats.length > 0 ? regularSeasonStats : statsData;
+
+    // Calculate career averages
+    const totalGames = statsToDisplay.reduce((sum, s) => sum + s.gp, 0);
+    const avgPts = (statsToDisplay.reduce((sum, s) => sum + s.pts, 0) / statsToDisplay.length).toFixed(1);
+    const avgAst = (statsToDisplay.reduce((sum, s) => sum + s.ast, 0) / statsToDisplay.length).toFixed(1);
+    const avgReb = (statsToDisplay.reduce((sum, s) => sum + s.reb, 0) / statsToDisplay.length).toFixed(1);
+    const avgMin = (statsToDisplay.reduce((sum, s) => sum + s.min, 0) / statsToDisplay.length).toFixed(1);
+
+    // Calculate shooting percentages
+    const totalFgm = statsToDisplay.reduce((sum, s) => sum + s.fgm, 0);
+    const totalFga = statsToDisplay.reduce((sum, s) => sum + s.fga, 0);
+    const fgPct = totalFga > 0 ? ((totalFgm / totalFga) * 100).toFixed(1) : '0.0';
+
+    const total3pm = statsToDisplay.reduce((sum, s) => sum + s.tpm, 0);
+    const total3pa = statsToDisplay.reduce((sum, s) => sum + s.tpa, 0);
+    const threePct = total3pa > 0 ? ((total3pm / total3pa) * 100).toFixed(1) : '0.0';
+
+    // Find peak regular season (minimum 20 games to qualify)
+    // Peak is determined by total production: PTS + REB + AST
+    const qualifiedRegularStats = regularSeasonStats.filter(s => s.gp >= 20);
+    const peakRegularSeason = qualifiedRegularStats.length > 0
+        ? qualifiedRegularStats.reduce((max, s) => {
+            const sTotal = s.pts + s.reb + s.ast;
+            const maxTotal = max.pts + max.reb + max.ast;
+            return sTotal > maxTotal ? s : max;
+        }, qualifiedRegularStats[0])
+        : null;
+
+    // Build peak season HTML
+    let peakSeasonHtml = '';
+    if (peakRegularSeason) {
+        const total = (peakRegularSeason.pts + peakRegularSeason.reb + peakRegularSeason.ast).toFixed(1);
+        peakSeasonHtml = `
+            <div class="peak-season">
+                <h4>Peak Regular Season (${peakRegularSeason.season})</h4>
+                <p>${peakRegularSeason.pts.toFixed(1)} PPG, ${peakRegularSeason.ast.toFixed(1)} APG, ${peakRegularSeason.reb.toFixed(1)} RPG</p>
+                <p class="total-production">Total: ${total} (PPG+APG+RPG)</p>
+                <p class="games-played">${peakRegularSeason.gp} games played</p>
+            </div>
+        `;
+    }
+
+    // Add playoff peak if available
+    // Peak playoff run also determined by total production
+    if (playoffStats.length > 0) {
+        const peakPlayoff = playoffStats.reduce((max, s) => {
+            const sTotal = s.pts + s.reb + s.ast;
+            const maxTotal = max.pts + max.reb + max.ast;
+            return sTotal > maxTotal ? s : max;
+        }, playoffStats[0]);
+        const total = (peakPlayoff.pts + peakPlayoff.reb + peakPlayoff.ast).toFixed(1);
+        peakSeasonHtml += `
+            <div class="peak-season playoff-peak">
+                <h4>Peak Playoff Run (${peakPlayoff.season})</h4>
+                <p>${peakPlayoff.pts.toFixed(1)} PPG, ${peakPlayoff.ast.toFixed(1)} APG, ${peakPlayoff.reb.toFixed(1)} RPG</p>
+                <p class="total-production">Total: ${total} (PPG+APG+RPG)</p>
+                <p class="games-played">${peakPlayoff.gp} playoff games</p>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <h3>${player.name}</h3>
+        ${(
+        [player.position || player.team || player.height || player.weight].some(Boolean)
+    ) ? `<p class="stat-position">
+              ${[player.position, player.team, player.height, player.weight].filter(Boolean).join(' • ')}
+            </p>` : ''}
+        
+        <div class="career-summary">
+            <h4>Career Overview</h4>
+            <p><strong>Seasons:</strong> ${statsToDisplay.length} | <strong>Games:</strong> ${totalGames}</p>
+        </div>
+        
+        <div class="stat-averages">
+            <h4>Career Averages</h4>
+            <div class="stat-row"><span>Points:</span> <strong>${avgPts}</strong></div>
+            <div class="stat-row"><span>Assists:</span> <strong>${avgAst}</strong></div>
+            <div class="stat-row"><span>Rebounds:</span> <strong>${avgReb}</strong></div>
+            <div class="stat-row"><span>Minutes:</span> <strong>${avgMin}</strong></div>
+            <div class="stat-row"><span>FG%:</span> <strong>${fgPct}%</strong></div>
+            <div class="stat-row"><span>3P%:</span> <strong>${threePct}%</strong></div>
+        </div>
+        
+        ${peakSeasonHtml}
+    `;
 }
 
 // Fetch and display player stats
@@ -195,112 +301,6 @@ function selectPlayer(
     updateCompareButton();
 }
 
-// Display individual player stats
-function displayPlayerStats(statsData, player, container) {
-    if (!statsData || statsData.length === 0) {
-        container.innerHTML = `
-            <div class="no-stats">
-                <h3>${player.name}</h3>
-                <p>No statistics available</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Separate regular season and playoff stats
-    const regularSeasonStats = statsData.filter(s => s.type === 2);
-    const playoffStats = statsData.filter(s => s.type === 3);
-    
-    // Determine which stats to show based on what's selected
-    const statsToDisplay = regularSeasonStats.length > 0 ? regularSeasonStats : statsData;
-    
-    // Calculate career averages
-    const totalGames = statsToDisplay.reduce((sum, s) => sum + s.gp, 0);
-    const avgPts = (statsToDisplay.reduce((sum, s) => sum + s.pts, 0) / statsToDisplay.length).toFixed(1);
-    const avgAst = (statsToDisplay.reduce((sum, s) => sum + s.ast, 0) / statsToDisplay.length).toFixed(1);
-    const avgReb = (statsToDisplay.reduce((sum, s) => sum + s.reb, 0) / statsToDisplay.length).toFixed(1);
-    const avgMin = (statsToDisplay.reduce((sum, s) => sum + s.min, 0) / statsToDisplay.length).toFixed(1);
-    
-    // Calculate shooting percentages
-    const totalFgm = statsToDisplay.reduce((sum, s) => sum + s.fgm, 0);
-    const totalFga = statsToDisplay.reduce((sum, s) => sum + s.fga, 0);
-    const fgPct = totalFga > 0 ? ((totalFgm / totalFga) * 100).toFixed(1) : '0.0';
-    
-    const total3pm = statsToDisplay.reduce((sum, s) => sum + s.tpm, 0);
-    const total3pa = statsToDisplay.reduce((sum, s) => sum + s.tpa, 0);
-    const threePct = total3pa > 0 ? ((total3pm / total3pa) * 100).toFixed(1) : '0.0';
-    
-    // Find peak regular season (minimum 20 games to qualify)
-    // Peak is determined by total production: PTS + REB + AST
-    const qualifiedRegularStats = regularSeasonStats.filter(s => s.gp >= 20);
-    const peakRegularSeason = qualifiedRegularStats.length > 0 
-        ? qualifiedRegularStats.reduce((max, s) => {
-            const sTotal = s.pts + s.reb + s.ast;
-            const maxTotal = max.pts + max.reb + max.ast;
-            return sTotal > maxTotal ? s : max;
-        }, qualifiedRegularStats[0])
-        : null;
-    
-    // Build peak season HTML
-    let peakSeasonHtml = '';
-    if (peakRegularSeason) {
-        const total = (peakRegularSeason.pts + peakRegularSeason.reb + peakRegularSeason.ast).toFixed(1);
-        peakSeasonHtml = `
-            <div class="peak-season">
-                <h4>Peak Regular Season (${peakRegularSeason.season})</h4>
-                <p>${peakRegularSeason.pts.toFixed(1)} PPG, ${peakRegularSeason.ast.toFixed(1)} APG, ${peakRegularSeason.reb.toFixed(1)} RPG</p>
-                <p class="total-production">Total: ${total} (PPG+APG+RPG)</p>
-                <p class="games-played">${peakRegularSeason.gp} games played</p>
-            </div>
-        `;
-    }
-    
-    // Add playoff peak if available
-    // Peak playoff run also determined by total production
-    if (playoffStats.length > 0) {
-        const peakPlayoff = playoffStats.reduce((max, s) => {
-            const sTotal = s.pts + s.reb + s.ast;
-            const maxTotal = max.pts + max.reb + max.ast;
-            return sTotal > maxTotal ? s : max;
-        }, playoffStats[0]);
-        const total = (peakPlayoff.pts + peakPlayoff.reb + peakPlayoff.ast).toFixed(1);
-        peakSeasonHtml += `
-            <div class="peak-season playoff-peak">
-                <h4>Peak Playoff Run (${peakPlayoff.season})</h4>
-                <p>${peakPlayoff.pts.toFixed(1)} PPG, ${peakPlayoff.ast.toFixed(1)} APG, ${peakPlayoff.reb.toFixed(1)} RPG</p>
-                <p class="total-production">Total: ${total} (PPG+APG+RPG)</p>
-                <p class="games-played">${peakPlayoff.gp} playoff games</p>
-            </div>
-        `;
-    }
-    
-    container.innerHTML = `
-        <h3>${player.name}</h3>
-        ${(
-            [player.position || player.team || player.height || player.weight].some(Boolean)
-        ) ? `<p class="stat-position">
-              ${[player.position, player.team, player.height, player.weight].filter(Boolean).join(' • ')}
-            </p>` : ''}
-        
-        <div class="career-summary">
-            <h4>Career Overview</h4>
-            <p><strong>Seasons:</strong> ${statsToDisplay.length} | <strong>Games:</strong> ${totalGames}</p>
-        </div>
-        
-        <div class="stat-averages">
-            <h4>Career Averages</h4>
-            <div class="stat-row"><span>Points:</span> <strong>${avgPts}</strong></div>
-            <div class="stat-row"><span>Assists:</span> <strong>${avgAst}</strong></div>
-            <div class="stat-row"><span>Rebounds:</span> <strong>${avgReb}</strong></div>
-            <div class="stat-row"><span>Minutes:</span> <strong>${avgMin}</strong></div>
-            <div class="stat-row"><span>FG%:</span> <strong>${fgPct}%</strong></div>
-            <div class="stat-row"><span>3P%:</span> <strong>${threePct}%</strong></div>
-        </div>
-        
-        ${peakSeasonHtml}
-    `;
-}
-
 // Display individual player accolades
 function displayPlayerAccolades(accoladesData, player, container) {
     if (!accoladesData || !accoladesData.awards || accoladesData.awards.length === 0) {
@@ -349,15 +349,15 @@ function displayComparisonResults(result) {
     document.getElementById('oneVsOne').textContent = result.oneVsOnePrediction || 'N/A';
 
     // Update player strengths with names
-    document.getElementById('player1NameStrengths').textContent =
+    document.getElementById('athlete1NameStrengths').textContent =
         `${selectedPlayerA.name} Strengths`;
-    document.getElementById('player1Strengths').textContent =
-        result.player1Strengths || 'N/A';
+    document.getElementById('athlete1Strengths').textContent =
+        result.athlete1Strengths || 'N/A';
 
-    document.getElementById('player2NameStrengths').textContent =
+    document.getElementById('athlete2NameStrengths').textContent =
         `${selectedPlayerB.name} Strengths`;
-    document.getElementById('player2Strengths').textContent =
-        result.player2Strengths || 'N/A';
+    document.getElementById('athlete2Strengths').textContent =
+        result.athlete2Strengths || 'N/A';
 
     // Update conclusion
     document.getElementById('conclusion').textContent = result.conclusion || 'N/A';

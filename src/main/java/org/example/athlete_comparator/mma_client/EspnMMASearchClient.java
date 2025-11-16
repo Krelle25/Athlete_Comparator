@@ -1,8 +1,8 @@
-package org.example.athlete_comparator.nba_client;
+package org.example.athlete_comparator.mma_client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.athlete_comparator.nba_dto.PlayerSearchResultDTO;
+import org.example.athlete_comparator.mma_dto.FighterSearchResultDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -14,16 +14,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class EspnSearchClient {
+public class EspnMMASearchClient {
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final String searchBase;
     private static final Pattern UID_ATHLETE = Pattern.compile("a:(\\d+)");
 
-    public EspnSearchClient(@Value("${espn.api.search}") String searchBase,
-                            @Value("${espn.api.timeout:5000}") int timeout,
-                            ObjectMapper objectMapper)
+    public EspnMMASearchClient(@Value("${espn.mma.api.search}") String searchBase,
+                               @Value("${espn.api.timeout:5000}") int timeout,
+                               ObjectMapper objectMapper)
     {
         this.searchBase = searchBase;
         this.objectMapper = objectMapper;
@@ -50,7 +50,7 @@ public class EspnSearchClient {
         }
     }
 
-    public List<PlayerSearchResultDTO> searchPlayers(String query) {
+    public List<FighterSearchResultDTO> searchFighters(String query) {
         String url = searchBase + "?limit=50&query=" + encode(query);
 
         JsonNode root = restClient.get()
@@ -59,7 +59,7 @@ public class EspnSearchClient {
                 .body(JsonNode.class);
         if (root == null) return List.of();
 
-        List<PlayerSearchResultDTO> out = new ArrayList<>();
+        List<FighterSearchResultDTO> out = new ArrayList<>();
 
         JsonNode results = root.path("results");
         for (JsonNode block : results) {
@@ -68,18 +68,16 @@ public class EspnSearchClient {
             JsonNode contents = block.path("contents");
             for (JsonNode content : contents) {
                 String sport = content.path("sport").asText("");
-                String leagueName = content.path("defaultLeagueSlug").asText("");
-                if (!"basketball".equalsIgnoreCase(sport) && !"nba".equalsIgnoreCase(leagueName)) continue;
+                if (!"mma".equalsIgnoreCase(sport)) continue;
 
                 long athleteID = parseAthleteID(content.path("uid").asText(""));
                 if (athleteID <= 0) continue;
 
-                PlayerSearchResultDTO dto = new PlayerSearchResultDTO();
+                FighterSearchResultDTO dto = new FighterSearchResultDTO();
                 dto.setID(athleteID);
                 dto.setName(content.path("displayName").asText(""));
-                dto.setLeague("nba");
-                dto.setTeam(content.path("subtitle").asText(""));
-                dto.setPosition("");
+                dto.setWeightClass(content.path("subtitle").asText(""));
+                dto.setNickname("");
                 dto.setHeadshotUrl(content.path("image").path("default").asText(""));
 
                 out.add(dto);

@@ -20,7 +20,7 @@ import java.util.List;
  * All endpoints are prefixed with /api (defined by @RequestMapping)
  */
 @RestController
-@RequestMapping("/api")  // All endpoints in this controller start with /api
+@RequestMapping("/api/nba")  // All endpoints in this controller start with /api/nba
 public class AthleteController {
 
     private final SearchService searchService;
@@ -53,14 +53,14 @@ public class AthleteController {
      * Endpoint: GET /api/athletes/{id}/season-stats?type={type}
      * Example: GET /api/athletes/1966/season-stats?type=2
 
-     * @param id The ESPN athlete ID
+     * @param athleteID The ESPN athlete ID
      * @param type Stats type: 0 = all stats | 2 = regular season only | 3 = playoffs only (default: 2)
      * @return List of statistics for each season the player has data
      */
-    @GetMapping("/athletes/{id}/season-stats")
-    public List<SeasonStatDTO> getSeasonStats(@PathVariable long id,
+    @GetMapping("/athletes/{athleteID}/season-stats")
+    public List<SeasonStatDTO> getSeasonStats(@PathVariable long athleteID,
                                               @RequestParam(defaultValue = "2") int type) {
-        return statsService.getSeasonStats(id, type);
+        return statsService.getSeasonStats(athleteID, type);
     }
 
     /**

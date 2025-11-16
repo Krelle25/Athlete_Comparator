@@ -1,7 +1,7 @@
 package org.example.athlete_comparator.nba_service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.example.athlete_comparator.nba_client.EspnStatsClient;
+import org.example.athlete_comparator.nba_client.EspnNBAStatsClient;
 import org.example.athlete_comparator.nba_dto.SeasonStatDTO;
 import org.springframework.stereotype.Service;
 
@@ -12,19 +12,27 @@ import java.util.regex.Pattern;
 @Service
 public class StatsService {
 
-    private final EspnStatsClient espnStatsClient;
+    private final EspnNBAStatsClient espnNBAStatsClient;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(StatsService.class);
     private static final Pattern TAIL_INT = Pattern.compile(".*/(\\d+)(?:\\?.*)?$");
     private static final Pattern TYPES_INT = Pattern.compile(".*/types/(\\d+)/.*");
 
-    public StatsService(EspnStatsClient espnStatsClient) {
-        this.espnStatsClient = espnStatsClient;
+    public StatsService(EspnNBAStatsClient espnNBAStatsClient) {
+        this.espnNBAStatsClient = espnNBAStatsClient;
     }
 
     private static int tail(JsonNode n) {
         String href = n.path("$ref").asText(n.path("href").asText(""));
         Matcher m = TAIL_INT.matcher(href);
         return m.find() ? Integer.parseInt(m.group(1)) : -1;
+    }
+
+    private static double nz(Double d) {
+        return d == null ? 0.0 : d;
+    }
+
+    private static double r(double v) {
+        return Math.rint(v);
     }
 
     private SeasonStatDTO mapAveragesToDto(JsonNode avg, int season, int type) {
@@ -83,20 +91,12 @@ public class StatsService {
         return 0.0;
     }
 
-    private static double nz(Double d) {
-        return d == null ? 0.0 : d;
-    }
-
-    private static double r(double v) {
-        return Math.rint(v);
-    }
-
     /**
      * @param type 2 = Regular | 3 = Playoffs | 0 = begge
      */
 
     public List<SeasonStatDTO> getSeasonStats(long athleteID, int type) {
-        JsonNode root = espnStatsClient.getStatisticsLog(athleteID);
+        JsonNode root = espnNBAStatsClient.getStatisticsLog(athleteID);
         
         if (root == null) {
             log.warn("Failed to fetch statisticslog for athlete {}", athleteID);
@@ -127,7 +127,7 @@ public class StatsService {
             for (int season : seasons) {
                 // Try regular season (type 2)
                 try {
-                    JsonNode regularStats = espnStatsClient.getSeasonAverage(athleteID, season, 2);
+                    JsonNode regularStats = espnNBAStatsClient.getSeasonAverage(athleteID, season, 2);
                     if (regularStats != null && !regularStats.path("splits").isMissingNode()) {
                         out.add(mapAveragesToDto(regularStats, season, 2));
                     }
@@ -137,7 +137,7 @@ public class StatsService {
                 
                 // Try playoffs (type 3)
                 try {
-                    JsonNode playoffStats = espnStatsClient.getSeasonAverage(athleteID, season, 3);
+                    JsonNode playoffStats = espnNBAStatsClient.getSeasonAverage(athleteID, season, 3);
                     if (playoffStats != null && !playoffStats.path("splits").isMissingNode()) {
                         out.add(mapAveragesToDto(playoffStats, season, 3));
                     }
@@ -149,7 +149,7 @@ public class StatsService {
             // Fetch specific type (2 or 3) for all seasons
             for (int season : seasons) {
                 try {
-                    JsonNode stats = espnStatsClient.getSeasonAverage(athleteID, season, type);
+                    JsonNode stats = espnNBAStatsClient.getSeasonAverage(athleteID, season, type);
                     if (stats != null && !stats.path("splits").isMissingNode()) {
                         out.add(mapAveragesToDto(stats, season, type));
                     }

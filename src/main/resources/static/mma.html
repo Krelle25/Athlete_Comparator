@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMA Fighter Comparator - Coming Soon</title>
+    <link rel="stylesheet" href="/stylesheet/general.css">
+    <link rel="stylesheet" href="/stylesheet/mma_styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/sport-selector.html" class="back-button">← Back to Sport Selection</a>
+            <h1>🥊 UFC Fighter Comparator</h1>
+            <p class="subtitle">Compare career stats and AI-powered analysis</p>
+        </header>
+
+        <main>
+            <!-- Selection Section -->
+            <section class="selection-section">
+                <div class="fighter-select">
+                    <div class="fighter-box">
+                        <h2>Fighter A</h2>
+                        <input type="text" id="searchA" class="search-input" placeholder="Search fighter...">
+                        <div id="resultsA" class="search-results"></div>
+                        <div id="selectedA" class="selected-fighter"></div>
+                    </div>
+
+                    <div class="vs-divider">
+                        <span>VS</span>
+                    </div>
+
+                    <div class="fighter-box">
+                        <h2>Fighter B</h2>
+                        <input type="text" id="searchB" class="search-input" placeholder="Search fighter...">
+                        <div id="resultsB" class="search-results"></div>
+                        <div id="selectedB" class="selected-fighter"></div>
+                    </div>
+                </div>
+
+                <button id="compareBtn" class="compare-btn" disabled>Compare Fighters</button>
+            </section>
+            <!-- Fighter Info Section -->
+            <section id="fighterInfo" class="fighter-info-section hidden">
+                <h2>Fighter Information</h2>
+                <div class="info-grid">
+                    <div id="infoA" class="fighter-info-card"></div>
+                    <div id="infoB" class="fighter-info-card"></div>
+                </div>
+            </section>
+
+            <!-- Player Stats Section -->
+            <section id="fighterStats" class="fighter-stats-section hidden">
+                <h2>Fighter Statistics</h2>
+                <div class="stats-grid">
+                    <div id="statsA" class="fighter-stats-card"></div>
+                    <div id="statsB" class="fighter-stats-card"></div>
+                </div>
+            </section>
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Analyzing fighters...</p>
+            </div>
+
+            <!-- Comparison Results -->
+            <section id="comparisonResults" class="comparison-results hidden">
+                <h2>Comparison Results</h2>
+
+                <div class="winner-banner">
+                    <h3>🏆 Overall Winner</h3>
+                    <p id="overallWinner"></p>
+                </div>
+
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h3>1v1 Prediction</h3>
+                        <p id="oneVsOne"></p>
+                    </div>
+
+                    <div class="analysis-card">
+                        <h3 id="athlete1NameStrengths">Fighter 1 Strengths</h3>
+                        <p id="athlete1Strengths"></p>
+                    </div>
+
+                    <div class="analysis-card">
+                        <h3 id="athlete2NameStrengths">Fighter 2 Strengths</h3>
+                        <p id="athlete2Strengths"></p>
+                    </div>
+
+                    <div class="analysis-card conclusion">
+                        <h3>📊 Conclusion</h3>
+                        <p id="conclusion"></p>
+                    </div>
+                </div>
+
+                <details class="full-analysis">
+                    <summary>View Full AI Analysis</summary>
+                    <pre id="fullAnalysis"></pre>
+                </details>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by ESPN API & OpenAI | @Krelle25 on GitHub</p>
+        </footer>
+    </div>
+
+<script src="/js/mma_app.js"></script>
+</body>
+</html>

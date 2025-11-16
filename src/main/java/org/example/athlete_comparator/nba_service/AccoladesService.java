@@ -1,7 +1,7 @@
 package org.example.athlete_comparator.nba_service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.example.athlete_comparator.nba_client.EspnStatsClient;
+import org.example.athlete_comparator.nba_client.EspnNBAStatsClient;
 import org.example.athlete_comparator.nba_dto.AccoladesDTO;
 import org.example.athlete_comparator.nba_dto.AwardDTO;
 import org.slf4j.Logger;
@@ -15,10 +15,10 @@ import java.util.List;
 public class AccoladesService {
 
     private static final Logger log = LoggerFactory.getLogger(AccoladesService.class);
-    private final EspnStatsClient espnStatsClient;
+    private final EspnNBAStatsClient espnNBAStatsClient;
 
-    public AccoladesService(EspnStatsClient espnStatsClient) {
-        this.espnStatsClient = espnStatsClient;
+    public AccoladesService(EspnNBAStatsClient espnNBAStatsClient) {
+        this.espnNBAStatsClient = espnNBAStatsClient;
     }
 
     /**
@@ -79,7 +79,7 @@ public class AccoladesService {
     public AccoladesDTO getAccolades(long athleteId) {
         try {
             // Fetch bio data
-            JsonNode bioData = espnStatsClient.getAthleteBio(athleteId);
+            JsonNode bioData = espnNBAStatsClient.getAthleteBio(athleteId);
             if (bioData == null) {
                 log.warn("No bio data found for athlete {}", athleteId);
                 return new AccoladesDTO("Unknown Player", List.of());
@@ -87,7 +87,7 @@ public class AccoladesService {
 
             // Get player name from info endpoint
             String playerName = "Unknown Player";
-            JsonNode athleteInfo = espnStatsClient.getAthleteInfo(athleteId);
+            JsonNode athleteInfo = espnNBAStatsClient.getAthleteInfo(athleteId);
             if (athleteInfo != null) {
                 playerName = athleteInfo.path("displayName").asText("Unknown Player");
             }

@@ -1,0 +1,83 @@
+/* Sport Selector Specific Styles */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.sport-selector-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 2rem;
+}
+
+.sport-selector-title {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.sport-selector-subtitle {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 3rem;
+}
+
+.sports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 800px;
+    width: 100%;
+}
+
+.sport-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.sport-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+}
+
+.sport-icon {
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+}
+
+.sport-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.sport-description {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.sport-card.nba {
+    border-top: 4px solid #FDB927;
+}
+
+.sport-card.mma {
+    border-top: 4px solid #d20a0a;
+}
+
+footer {
+    color: rgba(255, 255, 255, 0.8);
+}

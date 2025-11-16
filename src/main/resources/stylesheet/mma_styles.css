@@ -1,12 +1,7 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* MMA Specific Styles */
 :root {
-    --primary-color: #0755a7;
-    --secondary-color: #d61e36;
+    --primary-color: #d20a0a;
+    --secondary-color: #ffc107;
     --accent-color: #ff0000;
     --success-color: #10b981;
     --background: #f8fafc;
@@ -19,16 +14,8 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, var(--primary-color) 50%, var(--secondary-color) 50%);
-    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1a1a1a 100%);
     color: var(--text-primary);
-    padding: 20px;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
 /* Header */
@@ -63,14 +50,14 @@ main {
     margin-bottom: 30px;
 }
 
-.player-select {
+.fighter-select {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     gap: 20px;
     margin-bottom: 30px;
 }
 
-.player-box {
+.fighter-box {
     background: var(--background);
     padding: 20px;
     border-radius: 12px;
@@ -78,12 +65,12 @@ main {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.player-box:hover {
+.fighter-box:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow);
 }
 
-.player-box h2 {
+.fighter-box h2 {
     color: var(--text-primary);
     margin-bottom: 15px;
     font-size: 1.5rem;
@@ -100,7 +87,7 @@ main {
 
 .search-input:focus {
     outline: none;
-    border-color: var(--text-primary);
+    border-color: var(--primary-color);
 }
 
 .search-results {
@@ -136,7 +123,7 @@ main {
     border-bottom: none;
 }
 
-.result-item .player-headshot {
+.result-item .fighter-headshot {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -144,19 +131,19 @@ main {
     border: 2px solid var(--border-color);
 }
 
-.result-item .player-info {
+.result-item .fighter-info {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.result-item .player-info strong {
+.result-item .fighter-info strong {
     display: block;
 }
 
-.result-item .position,
-.result-item .team {
+.result-item .nickname,
+.result-item .weightClass {
     font-size: 0.85rem;
     color: var(--text-secondary);
     background: var(--background);
@@ -176,7 +163,7 @@ main {
     color: #ef4444;
 }
 
-.selected-player {
+.selected-fighter {
     margin-top: 15px;
 }
 
@@ -196,23 +183,23 @@ main {
     height: 50px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--secondary-color);
+    border: 2px solid var(--primary-color);
 }
 
-.selected-info .player-details {
+.selected-info .fighter-details {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.selected-info .player-name {
+.selected-info .fighter-name {
     font-weight: 600;
     color: var(--text-primary);
 }
 
-.selected-info .player-position,
-.selected-info .player-team {
+.selected-info .fighter-nickname,
+.selected-info .fighter-weightClass {
     font-size: 0.85rem;
     color: var(--text-secondary);
 }
@@ -307,26 +294,26 @@ main {
     opacity: 0.5;
 }
 
-/* Player Accolades Section */
-.player-accolades-section {
+/* Fighter Info Section */
+.fighter-info-section {
     margin: 40px 0;
     animation: fadeIn 0.6s ease-out;
 }
 
-.player-accolades-section h2 {
+.fighter-info-section h2 {
     text-align: center;
     color: var(--text-primary);
     margin-bottom: 30px;
     font-size: 2rem;
 }
 
-.accolades-container {
+.fighter-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
 }
 
-.accolades-column {
+.fighter-column {
     background: var(--background);
     padding: 25px;
     border-radius: 12px;
@@ -334,12 +321,12 @@ main {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.accolades-column:hover {
+.fighter-column:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
 }
 
-.accolades-content h3 {
+.fighter-content h3 {
     color: var(--text-primary);
     font-size: 1.5rem;
     margin-bottom: 20px;
@@ -347,64 +334,105 @@ main {
     border-bottom: 2px solid var(--border-color);
 }
 
-.awards-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
 
-.award-item {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 3px solid var(--primary-color);
-    transition: transform 0.2s;
-}
-
-.award-item:hover {
-    transform: translateX(5px);
-}
-
-.award-title {
-    color: var(--text-primary);
-    font-size: 1rem;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.award-year {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-    font-weight: normal;
-}
-
-.award-desc {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-top: 5px;
-    line-height: 1.4;
-}
-
-.no-accolades {
-    text-align: center;
-    color: var(--text-secondary);
-    padding: 40px 20px;
-}
-
-.no-accolades h3 {
-    color: var(--text-primary);
-    margin-bottom: 10px;
-}
-
-/* Player Stats Section */
-.player-stats-section {
+/* Fighter Info Section */
+.fighter-info-section {
     margin: 40px 0;
     animation: fadeIn 0.6s ease-out;
 }
 
-.player-stats-section h2 {
+.fighter-info-section h2 {
+    text-align: center;
+    color: var(--text-primary);
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.fighter-info-card {
+    background: var(--background);
+    padding: 25px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fighter-info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.fighter-info-card h3 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.fighter-info-card .info-nickname {
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.fighter-info-card .info-accolades {
+    background: linear-gradient(135deg, #ffc107, #ff9800);
+    color: #1e293b;
+    padding: 10px 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fighter-info-card .info-record {
+    background: var(--primary-color);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.fighter-info-card .info-section {
+    margin-bottom: 15px;
+}
+
+.fighter-info-card .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.fighter-info-card .info-row:last-child {
+    border-bottom: none;
+}
+
+.fighter-info-card .info-row span {
+    color: var(--text-secondary);
+}
+
+.fighter-info-card .info-row strong {
+    color: var(--text-primary);
+}
+
+/* Player Stats Section */
+.fighter-stats-section {
+    margin: 40px 0;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.fighter-stats-section h2 {
     text-align: center;
     color: var(--text-primary);
     margin-bottom: 30px;
@@ -417,7 +445,7 @@ main {
     gap: 30px;
 }
 
-.player-stats-card {
+.fighter-stats-card {
     background: var(--background);
     padding: 25px;
     border-radius: 12px;
@@ -425,54 +453,30 @@ main {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.player-stats-card:hover {
+.fighter-stats-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
 }
 
-.player-stats-card h3 {
+.fighter-stats-card h3 {
     color: var(--text-primary);
     font-size: 1.5rem;
     margin-bottom: 8px;
 }
 
-.player-stats-card .stat-position {
+.fighter-stats-card .stat-position {
     color: var(--text-secondary);
     margin-bottom: 20px;
     font-size: 0.95rem;
 }
 
-.player-stats-card .career-summary,
-.player-stats-card .stat-averages,
-.player-stats-card .peak-season {
+.fighter-stats-card .career-summary,
+.fighter-stats-card .stat-averages,
+.fighter-stats-card .peak-season {
     margin-bottom: 20px;
 }
 
-.player-stats-card .peak-season {
-    margin-bottom: 20px;
-}
-
-.player-stats-card .playoff-peak {
-    background: rgba(255, 136, 0, 0.1);
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 3px solid var(--secondary-color);
-}
-
-.player-stats-card .games-played {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-top: 5px;
-}
-
-.player-stats-card .total-production {
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-top: 5px;
-    font-size: 0.95rem;
-}
-
-.player-stats-card h4 {
+.fighter-stats-card h4 {
     color: var(--text-primary);
     font-size: 1.1rem;
     margin-bottom: 10px;
@@ -480,33 +484,33 @@ main {
     padding-bottom: 5px;
 }
 
-.player-stats-card .stat-row {
+.fighter-stats-card .stat-row {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
     border-bottom: 1px solid var(--border-color);
 }
 
-.player-stats-card .stat-row:last-child {
+.fighter-stats-card .stat-row:last-child {
     border-bottom: none;
 }
 
-.player-stats-card .stat-row span {
+.fighter-stats-card .stat-row span {
     color: var(--text-secondary);
 }
 
-.player-stats-card .stat-row strong {
+.fighter-stats-card .stat-row strong {
     color: var(--text-primary);
     font-size: 1.1rem;
 }
 
-.player-stats-card .no-stats {
+.fighter-stats-card .no-stats {
     text-align: center;
     color: var(--text-secondary);
     padding: 20px;
 }
 
-.player-stats-card p {
+.fighter-stats-card p {
     color: var(--text-primary);
     line-height: 1.6;
 }
@@ -521,7 +525,7 @@ main {
     width: 60px;
     height: 60px;
     border: 6px solid var(--border-color);
-    border-top-color: var(--secondary-color);
+    border-top-color: var(--primary-color);
     border-radius: 50%;
     margin: 0 auto 20px;
     animation: spin 1s linear infinite;
@@ -619,7 +623,7 @@ main {
 }
 
 .full-analysis summary:hover {
-    color: var(--secondary-color);
+    color: var(--primary-color);
 }
 
 .full-analysis pre {
@@ -693,7 +697,7 @@ footer {
         padding: 20px;
     }
 
-    .player-select {
+    .fighter-select {
         grid-template-columns: 1fr;
     }
 
