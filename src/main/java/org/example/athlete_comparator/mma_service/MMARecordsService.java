@@ -18,12 +18,13 @@ public class MMARecordsService {
     public FighterRecordDTO getFighterRecord(long fighterID) {
         JsonNode recordsData = espnMMAStatsClient.getFightRecords(fighterID);
 
+        FighterRecordDTO record = new FighterRecordDTO();
+        
         if (recordsData == null || !recordsData.has("items")) {
             log.warn("Failed to fetch records for fighter {}", fighterID);
-            return null;
+            return record; // Return empty record instead of null
         }
 
-        FighterRecordDTO record = new FighterRecordDTO();
         JsonNode items = recordsData.path("items");
 
         if (items.isArray() && items.size() > 0) {

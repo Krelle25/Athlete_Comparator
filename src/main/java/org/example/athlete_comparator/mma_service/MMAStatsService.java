@@ -17,69 +17,6 @@ public class MMAStatsService {
         this.espnMMAStatsClient = espnMMAStatsClient;
     }
 
-    public FighterStatDTO getTotalStats(long fighterID) {
-        JsonNode stats = espnMMAStatsClient.getStatistics(fighterID);
-
-        if (stats == null) {
-            log.warn("Failed to fetch statistics for fighter {}", fighterID);
-            return null;
-        }
-
-        return mapToDto(stats);
-    }
-
-    public FighterInfoDTO getFighterInfo(long fighterID) {
-        JsonNode fighterData = espnMMAStatsClient.getFighterInfo(fighterID);
-
-        if (fighterData == null) {
-            log.warn("Failed to fetch fighter info for {}", fighterID);
-            return null;
-        }
-
-        FighterInfoDTO info = new FighterInfoDTO();
-
-        // Basic info
-        info.setGender(fighterData.path("gender").asText(""));
-        info.setStyles(fighterData.path("styles").asText(""));
-        info.setStance(fighterData.path("stance").asText(""));
-        info.setName(fighterData.path("displayName").asText(""));
-        info.setNickname(fighterData.path("nickname").asText(""));
-        info.setHeight(fighterData.path("displayHeight").asText(""));
-        info.setWeight(fighterData.path("displayWeight").asText(""));
-        info.setAge(fighterData.path("age").asInt(0));
-
-        // Weight class - direct from weightClass.text
-        JsonNode weightClassNode = fighterData.path("weightClass");
-        if (!weightClassNode.isMissingNode()) {
-            info.setWeightClass(weightClassNode.path("text").asText(""));
-        }
-
-        // Country - direct string, not array
-        String citizenship = fighterData.path("citizenship").asText("");
-        if (!citizenship.isEmpty()) {
-            info.setCountry(citizenship);
-        }
-
-        // Headshot
-        JsonNode headshot = fighterData.path("headshot");
-        if (headshot.has("href")) {
-            info.setHeadshotUrl(headshot.path("href").asText(""));
-        }
-
-        // Reach - direct from displayReach at root level
-        String reach = fighterData.path("displayReach").asText("");
-        if (!reach.isEmpty()) {
-            info.setReach(reach);
-        }
-
-        String accolades = fighterData.path("accolades").asText("");
-        if (!accolades.isEmpty()) {
-            info.setAccolades(accolades);
-        }
-
-        return info;
-    }
-
     private FighterStatDTO mapToDto(JsonNode root) {
         FighterStatDTO dto = new FighterStatDTO();
 
@@ -124,6 +61,89 @@ public class MMAStatsService {
         }
 
         return dto;
+    }
+
+    public FighterStatDTO getTotalStats(long fighterID) {
+        JsonNode stats = espnMMAStatsClient.getStatistics(fighterID);
+
+        if (stats == null) {
+            log.warn("No statistics available for fighter {} (likely retired)", fighterID);
+            return new FighterStatDTO(); // Return empty DTO instead of null
+        }
+
+        return mapToDto(stats);
+    }
+
+    public FighterInfoDTO getFighterInfo(long fighterID) {
+        JsonNode fighterData = espnMMAStatsClient.getFighterInfo(fighterID);
+
+        if (fighterData == null) {
+            log.warn("Failed to fetch fighter info for {}", fighterID);
+            return null;
+        }
+
+        FighterInfoDTO info = new FighterInfoDTO();
+
+        // Basic info
+        info.setGender(fighterData.path("gender").asText(""));
+        info.setName(fighterData.path("displayName").asText(""));
+        info.setNickname(fighterData.path("nickname").asText(""));
+        info.setHeight(fighterData.path("displayHeight").asText(""));
+        info.setWeight(fighterData.path("displayWeight").asText(""));
+        info.setAge(fighterData.path("age").asInt(0));
+
+        // Weight class - direct from weightClass.text
+        JsonNode weightClassNode = fighterData.path("weightClass");
+        if (!weightClassNode.isMissingNode()) {
+            info.setWeightClass(weightClassNode.path("text").asText(""));
+        }
+
+        // Country - direct string, not array
+        String citizenship = fighterData.path("citizenship").asText("");
+        if (!citizenship.isEmpty()) {
+            info.setCountry(citizenship);
+        }
+
+        // Headshot
+        JsonNode headshot = fighterData.path("headshot");
+        if (headshot.has("href")) {
+            info.setHeadshotUrl(headshot.path("href").asText(""));
+        }
+
+        // Reach - direct from displayReach at root level
+        String reach = fighterData.path("displayReach").asText("");
+        if (!reach.isEmpty()) {
+            info.setReach(reach);
+        }
+
+        // Stance - object with id and text
+        JsonNode stanceNode = fighterData.path("stance");
+        if (!stanceNode.isMissingNode() && stanceNode.has("text")) {
+            info.setStance(stanceNode.path("text").asText(""));
+        }
+
+        // Styles - array of objects with id and text
+        JsonNode stylesNode = fighterData.path("styles");
+        if (stylesNode.isArray() && !stylesNode.isEmpty()) {
+            StringBuilder stylesBuilder = new StringBuilder();
+            for (int i = 0; i < stylesNode.size(); i++) {
+                if (i > 0) stylesBuilder.append(", ");
+                stylesBuilder.append(stylesNode.get(i).path("text").asText(""));
+            }
+            info.setStyles(stylesBuilder.toString());
+        }
+
+        JsonNode accoladesNode = fighterData.path("accolades");
+        if (accoladesNode.isArray() && !accoladesNode.isEmpty()) {
+            StringBuilder accoladesBuilder = new StringBuilder();
+            for (int i = 0; i < accoladesNode.size(); i++) {
+                if (i > 0) accoladesBuilder.append(", ");
+                accoladesBuilder.append(accoladesNode.get(i).path("name").asText(""));
+            }
+            info.setAccolades(accoladesBuilder.toString());
+        }
+
+        return info;
     }
 }
 

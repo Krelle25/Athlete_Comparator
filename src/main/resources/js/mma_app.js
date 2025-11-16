@@ -125,6 +125,7 @@ function displayFighterInfo(info, container) {
     container.innerHTML = `
         <h3>${info.name || 'Unknown'}</h3>
         ${info.nickname ? `<p class="info-nickname">"${info.nickname}"</p>` : ''}
+        ${info.accolades ? `<p class="info-accolades">🏆 ${info.accolades}</p>` : ''}
 
         <div class="info-section">
         <div class="info-row">
@@ -134,6 +135,14 @@ function displayFighterInfo(info, container) {
             <div class="info-row">
                 <span>Weight Class:</span>
                 <strong>${info.weightClass || 'N/A'}</strong>
+            </div>
+            <div class="info-row">
+                <span>Style:</span>
+                <strong>${info.styles || 'N/A'}</strong>
+            </div>
+            <div class="info-row">
+                <span>Stance:</span>
+                <strong>${info.stance || 'N/A'}</strong>
             </div>
             <div class="info-row">
                 <span>Height:</span>
@@ -166,6 +175,11 @@ function displayFighterStats(stats, record, fighter, container) {
         return;
     }
 
+    // Check if fighter has any stats (not all zeros)
+    const hasStats = stats.strikeLPM || stats.strikeAccuracy || stats.takedownAvg || 
+                     stats.takedownAccuracy || stats.submissionAvg || stats.koPercentage || 
+                     stats.tkoPercentage || stats.decisionPercentage;
+
     container.innerHTML = `
         <h3>${fighter.name}</h3>
         <p class="stat-position">${fighter.weightClass || 'Fighter'}</p>
@@ -182,6 +196,7 @@ function displayFighterStats(stats, record, fighter, container) {
             </div>
         </div>
 
+        ${hasStats ? `
         <div class="stat-averages">
             <h4>Fight Stats (per 15 min)</h4>
             <div class="stat-row">
@@ -217,6 +232,12 @@ function displayFighterStats(stats, record, fighter, container) {
                 <strong>${stats.decisionPercentage ? stats.decisionPercentage.toFixed(1) : 'N/A'}%</strong>
             </div>
         </div>
+        ` : `
+        <div class="no-stats" style="margin-top: 20px; padding: 20px; background: #f8fafc; border-radius: 8px; text-align: center; color: #64748b;">
+            <p>⚠️ Detailed fight statistics not available</p>
+            <p style="font-size: 0.9rem; margin-top: 8px;">This fighter may be retired or have limited data</p>
+        </div>
+        `}
     `;
 }
 

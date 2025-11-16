@@ -376,8 +376,20 @@ main {
 .fighter-info-card .info-nickname {
     color: var(--text-secondary);
     font-style: italic;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     font-size: 1.1rem;
+}
+
+.fighter-info-card .info-accolades {
+    background: linear-gradient(135deg, #ffc107, #ff9800);
+    color: #1e293b;
+    padding: 10px 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .fighter-info-card .info-record {
@@ -701,18 +713,4 @@ footer {
     .analysis-grid {
         grid-template-columns: 1fr;
     }
-}
-
-/* Back Button */
-.back-button {
-    color: white;
-    text-decoration: none;
-    font-size: 0.9rem;
-    display: inline-block;
-    margin-bottom: 0.5rem;
-    transition: transform 0.2s;
-}
-
-.back-button:hover {
-    transform: scale(1.05);
 }
