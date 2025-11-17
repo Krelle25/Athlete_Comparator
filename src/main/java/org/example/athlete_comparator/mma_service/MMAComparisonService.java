@@ -27,6 +27,9 @@ public class MMAComparisonService {
             You are an expert MMA analyst with deep knowledge of mixed martial arts, fighting styles, and fighter performance metrics.
             Your task is to provide objective, data-driven comparisons between MMA fighters.
             
+            CRITICAL: Base your analysis ONLY on the provided statistics and data. Do NOT rely on your pre-existing knowledge about these fighters.
+            The data provided reflects their CURRENT form and recent performance, which may differ from historical records in your training data.
+            
             IMPORTANT: You must evaluate TWO SEPARATE THINGS:
             1. OVERALL WINNER = Who had the better CAREER (achievements, skill level, legacy)
             2. 1v1 FIGHT = Who would WIN in an ACTUAL FIGHT (considering physical advantages)
@@ -34,36 +37,37 @@ public class MMAComparisonService {
             These are often DIFFERENT fighters. A smaller fighter with an amazing career (30-0 record, multiple titles) 
             is the OVERALL WINNER, but would LOSE the 1v1 fight to a much larger fighter due to weight/size.
             
-            CRITICAL: Weight class differences are PARAMOUNT in MMA. A size/weight advantage of more than one weight class is nearly impossible to overcome.
-            
             WEIGHT CLASS HIERARCHY (from lightest to heaviest):
             - Flyweight (125 lbs) → Bantamweight (135) → Featherweight (145) → Lightweight (155) → Welterweight (170)
             - Middleweight (185) → Light Heavyweight (205) → Heavyweight (265)
             
             For OVERALL WINNER (who is the better fighter career-wise):
-            - Career statistics and fight record
+            - Career statistics and fight record (W-L-D record)
+            - Title defenses and championship reign
             - Striking efficiency and accuracy
             - Takedown ability and grappling skills
             - Finishing ability (KO, TKO, submission rates)
-            - Championship achievements and title defenses
             - Level of competition faced
             - Career longevity and consistency
             
             For 1v1 FIGHT PREDICTION (who would actually win in a real fight):
-            - WEIGHT CLASS IS THE PRIMARY FACTOR (if 2+ classes apart, heavier fighter wins 99% of the time)
-            - If fighters are in DIFFERENT weight classes (2+ classes apart): The HEAVIER fighter almost always wins
-            - Even the most skilled smaller fighter cannot overcome a 30+ pound weight disadvantage
-            - Examples: A Featherweight (145) vs Heavyweight (265) = Heavyweight wins regardless of skill
-            - Only if weight classes are similar (same or adjacent) should you analyze:
+            STEP 1: Check if they are in the SAME weight class or DIFFERENT weight classes:
+            - IF SAME WEIGHT CLASS: Weight is NOT a factor. Analyze fighting styles, stats, and matchup dynamics.
+            - IF DIFFERENT WEIGHT CLASSES (2+ classes apart): The HEAVIER fighter wins 99% of the time.
+            
+            STEP 2: If same/adjacent weight class, analyze these factors:
+              * Recent record and momentum
               * Striking vs grappling style matchup
-              * Reach advantages
+              * Reach advantages  
               * Takedown offense vs takedown defense
-              * Knockout power and chin durability
+              * Knockout power and finishing ability
               * Submission skills and ground game
               * Fighting style compatibility
             
-            REMEMBER: The 1v1 winner and overall winner are often DIFFERENT fighters.
-            Be consistent in your conclusion - don't contradict yourself.
+            REMEMBER: 
+            - If fighters are in the SAME weight class, do NOT mention weight as an advantage for either fighter.
+            - The 1v1 winner and overall winner are often DIFFERENT fighters.
+            - Use ONLY the provided data - ignore any prior knowledge about these fighters.
             
             Provide balanced, factual analysis backed by the statistics provided.
             Be specific with numbers and metrics.
@@ -95,7 +99,8 @@ public class MMAComparisonService {
                 stats.getKoPercentage(), stats.getTkoPercentage(), stats.getDecisionPercentage()));
     }
 
-    private void appendFighterInfo(StringBuilder sb, long fighterID) {
+    private String appendFighterInfo(StringBuilder sb, long fighterID) {
+        String weightClass = null;
         try {
             JsonNode fighterInfo = espnMMAStatsClient.getFighterInfo(fighterID);
             JsonNode recordsInfo = espnMMAStatsClient.getFightRecords(fighterID);
@@ -104,7 +109,7 @@ public class MMAComparisonService {
                 // Weight Class
                 JsonNode weightClassNode = fighterInfo.path("weightClass");
                 if (!weightClassNode.isMissingNode()) {
-                    String weightClass = weightClassNode.path("text").asText("");
+                    weightClass = weightClassNode.path("text").asText("");
                     if (!weightClass.isEmpty()) {
                         sb.append(String.format("  Weight Class: %s\n", weightClass));
                     }
@@ -131,40 +136,56 @@ public class MMAComparisonService {
         } catch (Exception e) {
             log.warn("Failed to fetch additional fighter info for {}", fighterID, e);
         }
+        return weightClass;
     }
 
     private String buildUserPrompt(FighterStatDTO fighter1Stats, FighterStatDTO fighter2Stats,
                                     String fighter1Name, String fighter2Name,
                                     long fighter1ID, long fighter2ID) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("Compare these two MMA fighters based on their career statistics:\n\n");
+        prompt.append("Compare these two MMA fighters based ONLY on the data provided below.\n");
+        prompt.append("IGNORE any prior knowledge you have about these fighters. Use ONLY this current data.\n\n");
 
         prompt.append("FIGHTER 1 (").append(fighter1Name).append("):\n");
-        appendFighterInfo(prompt, fighter1ID);
+        String weightClass1 = appendFighterInfo(prompt, fighter1ID);
         appendFighterSummary(prompt, fighter1Stats);
 
         prompt.append("\n");
 
         prompt.append("FIGHTER 2 (").append(fighter2Name).append("):\n");
-        appendFighterInfo(prompt, fighter2ID);
+        String weightClass2 = appendFighterInfo(prompt, fighter2ID);
         appendFighterSummary(prompt, fighter2Stats);
 
         prompt.append("\n");
-        prompt.append("Based on this data, provide:\n");
+        
+        // Explicitly state if same weight class
+        if (weightClass1 != null && weightClass2 != null && weightClass1.equals(weightClass2)) {
+            prompt.append("⚠️ IMPORTANT: Both fighters compete in the SAME weight class (").append(weightClass1).append(").\n");
+            prompt.append("Therefore, weight is NOT an advantage for either fighter in the 1v1 prediction.\n\n");
+        } else if (weightClass1 != null && weightClass2 != null) {
+            prompt.append("⚠️ IMPORTANT: These fighters are in DIFFERENT weight classes (").append(fighter1Name)
+                  .append(": ").append(weightClass1).append(" vs ").append(fighter2Name).append(": ").append(weightClass2).append(").\n");
+            prompt.append("Weight class difference is a PRIMARY factor in the 1v1 prediction.\n\n");
+        }
+        
+        prompt.append("Based ONLY on the data above, provide:\n");
         prompt.append("1. Overall Winner: Who is the BETTER FIGHTER OVERALL considering achievements, skills, and career impact?\n");
-        prompt.append("   (This is about who had the better career, NOT who would win in a fight)\n");
+        prompt.append("   - Look at their RECORDS (W-L-D)\n");
+        prompt.append("   - Consider title defenses, finish rates, and quality of competition\n");
+        prompt.append("   (This is about who had the better career, NOT who would win in a fight)\n\n");
         prompt.append("2. 1v1 Fight Prediction: Who would WIN A HYPOTHETICAL FIGHT between these two?\n");
-        prompt.append("   - FIRST check weight class difference - if 2+ classes apart, the heavier fighter almost always wins\n");
-        prompt.append("   - Consider size/reach advantages\n");
-        prompt.append("   - Consider striking vs grappling matchup\n");
+        prompt.append("   - FIRST: Are they in the same weight class? If YES, weight is NOT a factor.\n");
+        prompt.append("   - Consider striking vs grappling matchup based on their stats\n");
+        prompt.append("   - Consider reach advantages if different\n");
         prompt.append("   - Consider their records and finishing ability\n");
-        prompt.append("3. Fighter 1 Strengths: What are Fighter 1's main strengths?\n");
-        prompt.append("4. Fighter 2 Strengths: What are Fighter 2's main strengths?\n");
+        prompt.append("   - Consider recent form and momentum\n\n");
+        prompt.append("3. Fighter 1 Strengths: What are Fighter 1's main strengths based on the data?\n");
+        prompt.append("4. Fighter 2 Strengths: What are Fighter 2's main strengths based on the data?\n");
         prompt.append("5. Conclusion: Summarize WHO is better overall AND WHO would win the fight (these may be different fighters).\n\n");
 
         prompt.append("Format your response EXACTLY as follows:\n");
         prompt.append("OVERALL_WINNER: [Fighter Name] - Better career and accomplishments\n");
-        prompt.append("ONE_VS_ONE: [Fighter Name] would win the fight. [Explain why]\n");
+        prompt.append("ONE_VS_ONE: [Fighter Name] would win the fight. [Explain why based on stats and matchup]\n");
         prompt.append("FIGHTER1_STRENGTHS: [List of strengths]\n");
         prompt.append("FIGHTER2_STRENGTHS: [List of strengths]\n");
         prompt.append("CONCLUSION: [Summary that clearly states: X is the better fighter overall, but Y would win in an actual fight because...]");
