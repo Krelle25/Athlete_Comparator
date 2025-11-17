@@ -32,11 +32,6 @@ public class MMASearchService {
                     if (!nickname.isEmpty()) {
                         fighter.setNickname(nickname);
                     }
-
-                    String weightClass = bio.path("position").path("name").asText("");
-                    if (!weightClass.isEmpty()) {
-                        fighter.setWeightClass(weightClass);
-                    }
                 }
             } catch (Exception e) {
                 // Continue without extra info if the fetch fails

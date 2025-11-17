@@ -1,0 +1,8 @@
+# Lavet for at Docker ikke sender alt det unødvendige med ind i build content --> hurtigere builds
+
+target
+.git
+.gitignore
+.idea
+*.iml
+node_modules

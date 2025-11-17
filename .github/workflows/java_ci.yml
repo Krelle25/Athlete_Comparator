@@ -1,0 +1,58 @@
+name:  Java CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@5fea2a030a55fe5da9313fa068eb3abccdfe5f1b
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          java-version: "21"
+          distribution: "temurin"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-${{ runner.os }}-
+
+      - name: Run tests
+        run: mvn -B test
+
+  docker-test:
+    runs-on: ubuntu-latest
+    needs: test       # Kør kun dette job hvis 'test' er gået grønt
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@5fea2a030a55fe5da9313fa068eb3abccdfe5f1b
+
+      - name: Build Docker image
+        run: docker build -t athlete-comparator:test .
+
+      - name: Run Docker container
+        run: |
+          docker run -d --name athlete-test -p 8080:8080 -e API_KEY=$API_KEY athlete-comparator:test
+          echo "Waiting for app to start..."
+          sleep 25
+          curl -f http://localhost:8080/healthz || (echo "Health check failed" && docker logs athlete-test && exit 1)
+
+      - name: Stop and remove container
+        if: always()
+        run: docker rm -f athlete-test
