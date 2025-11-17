@@ -1,6 +1,7 @@
 package org.example.athlete_comparator.mma_api;
 
 import org.example.athlete_comparator.mma_dto.FighterInfoDTO;
+import org.example.athlete_comparator.mma_dto.FighterRecordDTO;
 import org.example.athlete_comparator.mma_dto.FighterSearchResultDTO;
 import org.example.athlete_comparator.mma_dto.FighterStatDTO;
 import org.example.athlete_comparator.mma_service.MMARecordsService;
@@ -30,7 +31,7 @@ public class FighterController {
     }
 
     @GetMapping("/fighters/{id}/record")
-    public org.example.athlete_comparator.mma_dto.FighterRecordDTO getFighterRecord(@PathVariable("id") long fighterID) {
+    public FighterRecordDTO getFighterRecord(@PathVariable("id") long fighterID) {
         return mmaRecordsService.getFighterRecord(fighterID);
     }
 
