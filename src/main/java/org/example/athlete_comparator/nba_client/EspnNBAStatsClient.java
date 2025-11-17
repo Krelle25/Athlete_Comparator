@@ -35,21 +35,13 @@ public class EspnNBAStatsClient {
                 .build();
     }
 
-    public JsonNode getStatisticsLog(long athleteID) {
-        String url = coreBase + "/athletes/" + athleteID + "/statisticslog?region=us&lang=en";
-        try {
-            return restClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .body(JsonNode.class);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    public JsonNode getSeasonAverage(long athleteID, int season, int type) {
-        String url = coreBase + "/seasons/" + season + "/types/" + type
-                + "/athletes/" + athleteID + "/statistics/0?region=us&lang=en";
+    /**
+     * Fetches athlete bio data including awards and accolades
+     * @param athleteID The unique ESPN athlete ID
+     * @return JsonNode containing athlete bio information, or null if request fails
+     */
+    public JsonNode getAthleteBio(long athleteID) {
+        String url = webBase + "/athletes/" + athleteID + "/bio";
         try {
             return restClient.get()
                     .uri(url)
@@ -77,13 +69,21 @@ public class EspnNBAStatsClient {
         }
     }
 
-    /**
-     * Fetches athlete bio data including awards and accolades
-     * @param athleteID The unique ESPN athlete ID
-     * @return JsonNode containing athlete bio information, or null if request fails
-     */
-    public JsonNode getAthleteBio(long athleteID) {
-        String url = webBase + "/athletes/" + athleteID + "/bio";
+    public JsonNode getStatisticsLog(long athleteID) {
+        String url = coreBase + "/athletes/" + athleteID + "/statisticslog?region=us&lang=en";
+        try {
+            return restClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public JsonNode getSeasonAverage(long athleteID, int season, int type) {
+        String url = coreBase + "/seasons/" + season + "/types/" + type
+                + "/athletes/" + athleteID + "/statistics/0?region=us&lang=en";
         try {
             return restClient.get()
                     .uri(url)

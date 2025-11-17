@@ -29,11 +29,6 @@ public class FighterController {
         return mmaSearchService.search(searchText);
     }
 
-    @GetMapping("/fighters/{id}/stats")
-    public FighterStatDTO getTotalStats(@PathVariable("id") long fighterID) {
-        return mmaStatsService.getTotalStats(fighterID);
-    }
-
     @GetMapping("/fighters/{id}/record")
     public org.example.athlete_comparator.mma_dto.FighterRecordDTO getFighterRecord(@PathVariable("id") long fighterID) {
         return mmaRecordsService.getFighterRecord(fighterID);
@@ -42,5 +37,10 @@ public class FighterController {
     @GetMapping("/fighters/{id}/info")
     public FighterInfoDTO getFighterInfo(@PathVariable("id") long fighterID) {
         return mmaStatsService.getFighterInfo(fighterID);
+    }
+
+    @GetMapping("/fighters/{id}/stats")
+    public FighterStatDTO getStatistics(@PathVariable("id") long fighterID) {
+        return mmaStatsService.getStatistics(fighterID);
     }
 }

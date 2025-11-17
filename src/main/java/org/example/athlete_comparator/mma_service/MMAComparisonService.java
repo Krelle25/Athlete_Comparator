@@ -249,8 +249,8 @@ public class MMAComparisonService {
         String fighter1Name = getFighterName(fighter1ID);
         String fighter2Name = getFighterName(fighter2ID);
 
-        FighterStatDTO fighter1Stats = mmaStatsService.getTotalStats(fighter1ID);
-        FighterStatDTO fighter2Stats = mmaStatsService.getTotalStats(fighter2ID);
+        FighterStatDTO fighter1Stats = mmaStatsService.getStatistics(fighter1ID);
+        FighterStatDTO fighter2Stats = mmaStatsService.getStatistics(fighter2ID);
 
         if (fighter1Stats == null || fighter2Stats == null) {
             CompareResultDTO errorResult = new CompareResultDTO();

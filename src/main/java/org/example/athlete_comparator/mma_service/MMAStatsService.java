@@ -63,17 +63,6 @@ public class MMAStatsService {
         return dto;
     }
 
-    public FighterStatDTO getTotalStats(long fighterID) {
-        JsonNode stats = espnMMAStatsClient.getStatistics(fighterID);
-
-        if (stats == null) {
-            log.warn("No statistics available for fighter {} (likely retired)", fighterID);
-            return new FighterStatDTO(); // Return empty DTO instead of null
-        }
-
-        return mapToDto(stats);
-    }
-
     public FighterInfoDTO getFighterInfo(long fighterID) {
         JsonNode fighterData = espnMMAStatsClient.getFighterInfo(fighterID);
 
@@ -144,6 +133,17 @@ public class MMAStatsService {
         }
 
         return info;
+    }
+
+    public FighterStatDTO getStatistics(long fighterID) {
+        JsonNode stats = espnMMAStatsClient.getStatistics(fighterID);
+
+        if (stats == null) {
+            log.warn("No statistics available for fighter {} (likely retired)", fighterID);
+            return new FighterStatDTO(); // Return empty DTO instead of null
+        }
+
+        return mapToDto(stats);
     }
 }
 
