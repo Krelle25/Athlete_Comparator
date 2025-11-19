@@ -47,7 +47,8 @@ public class OpenAiClient {
             requestBody.put("max_tokens", maxTokens);
 
             ArrayNode messages = objectMapper.createArrayNode();
-            
+            requestBody.set("messages", messages);
+
             ObjectNode systemMessage = objectMapper.createObjectNode();
             systemMessage.put("role", "system");
             systemMessage.put("content", systemPrompt);
@@ -57,8 +58,6 @@ public class OpenAiClient {
             userMessage.put("role", "user");
             userMessage.put("content", userPrompt);
             messages.add(userMessage);
-
-            requestBody.set("messages", messages);
 
             JsonNode response = restClient.post()
                     .body(requestBody)

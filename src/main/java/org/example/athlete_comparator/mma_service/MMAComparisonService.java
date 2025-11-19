@@ -27,8 +27,12 @@ public class MMAComparisonService {
             You are an expert MMA analyst with deep knowledge of mixed martial arts, fighting styles, and fighter performance metrics.
             Your task is to provide objective, data-driven comparisons between MMA fighters.
             
-            CRITICAL: Base your analysis ONLY on the provided statistics and data. Do NOT rely on your pre-existing knowledge about these fighters.
-            The data provided reflects their CURRENT form and recent performance, which may differ from historical records in your training data.
+            ⚠️ CRITICAL ANTI-BIAS RULES ⚠️
+            1. DO NOT let fighter fame, popularity, or legacy influence your 1v1 fight prediction
+            2. Base your analysis ONLY on the provided statistics and data
+            3. Do NOT rely on your pre-existing knowledge about these fighters
+            4. Ignore historical hype, media narratives, or fan opinions
+            5. A famous fighter with a legendary career can still LOSE a 1v1 fight to a lesser-known fighter with physical advantages
             
             IMPORTANT: You must evaluate TWO SEPARATE THINGS:
             1. OVERALL WINNER = Who had the better CAREER (achievements, skill level, legacy)
@@ -50,12 +54,16 @@ public class MMAComparisonService {
             - Level of competition faced
             - Career longevity and consistency
             
-            For 1v1 FIGHT PREDICTION (who would actually win in a real fight):
-            STEP 1: Check if they are in the SAME weight class or DIFFERENT weight classes:
-            - IF SAME WEIGHT CLASS: Weight is NOT a factor. Analyze fighting styles, stats, and matchup dynamics.
-            - IF DIFFERENT WEIGHT CLASSES (2+ classes apart): The HEAVIER fighter wins 99% of the time.
+            🚨 For 1v1 FIGHT PREDICTION (who would actually win in a real fight) 🚨
+            STEP 1: MANDATORY WEIGHT CLASS CHECK:
+            - IF DIFFERENT WEIGHT CLASSES (2+ classes apart): The HEAVIER fighter wins. Period. No exceptions.
+              * Weight/size difference is insurmountable in combat sports
+              * 20-40 lbs advantage = massive strength, power, and durability gap
+              * Technical skill CANNOT overcome this physical disparity
+              * Example: A lightweight (155) CANNOT beat a middleweight (185), even if more skilled
+            - IF SAME or ADJACENT weight class (within 1 class): Then analyze fighting styles and matchups below.
             
-            STEP 2: If same/adjacent weight class, analyze these factors:
+            STEP 2: Only if same/adjacent weight class, analyze these factors:
               * Recent record and momentum
               * Striking vs grappling style matchup
               * Reach advantages  
@@ -65,9 +73,11 @@ public class MMAComparisonService {
               * Fighting style compatibility
             
             REMEMBER: 
-            - If fighters are in the SAME weight class, do NOT mention weight as an advantage for either fighter.
-            - The 1v1 winner and overall winner are often DIFFERENT fighters.
-            - Use ONLY the provided data - ignore any prior knowledge about these fighters.
+            - Weight class difference of 2+ classes = heavier fighter wins the 1v1 automatically
+            - If fighters are in the SAME weight class, do NOT mention weight as an advantage
+            - The 1v1 winner and overall winner are often DIFFERENT fighters
+            - Fame, legacy, and past accomplishments do NOT matter for the 1v1 prediction
+            - Use ONLY the provided data - ignore any prior knowledge about these fighters
             
             Provide balanced, factual analysis backed by the statistics provided.
             Be specific with numbers and metrics.
@@ -160,12 +170,15 @@ public class MMAComparisonService {
         
         // Explicitly state if same weight class
         if (weightClass1 != null && weightClass2 != null && weightClass1.equals(weightClass2)) {
-            prompt.append("⚠️ IMPORTANT: Both fighters compete in the SAME weight class (").append(weightClass1).append(").\n");
-            prompt.append("Therefore, weight is NOT an advantage for either fighter in the 1v1 prediction.\n\n");
+            prompt.append("⚠️ WEIGHT CLASS CHECK: Both fighters compete in the SAME weight class (").append(weightClass1).append(").\n");
+            prompt.append("Therefore, weight is NOT an advantage for either fighter in the 1v1 prediction.\n");
+            prompt.append("Analyze the matchup based on fighting styles, stats, and techniques only.\n\n");
         } else if (weightClass1 != null && weightClass2 != null) {
-            prompt.append("⚠️ IMPORTANT: These fighters are in DIFFERENT weight classes (").append(fighter1Name)
-                  .append(": ").append(weightClass1).append(" vs ").append(fighter2Name).append(": ").append(weightClass2).append(").\n");
-            prompt.append("Weight class difference is a PRIMARY factor in the 1v1 prediction.\n\n");
+            prompt.append("🚨 WEIGHT CLASS CHECK: These fighters are in DIFFERENT weight classes:\n");
+            prompt.append("  - ").append(fighter1Name).append(": ").append(weightClass1).append("\n");
+            prompt.append("  - ").append(fighter2Name).append(": ").append(weightClass2).append("\n");
+            prompt.append("🚨 CRITICAL: The heavier fighter has an insurmountable physical advantage.\n");
+            prompt.append("🚨 For the 1v1 prediction, the HEAVIER fighter wins. Do NOT let fame or legacy override this.\n\n");
         }
         
         prompt.append("Based ONLY on the data above, provide:\n");
@@ -174,11 +187,11 @@ public class MMAComparisonService {
         prompt.append("   - Consider title defenses, finish rates, and quality of competition\n");
         prompt.append("   (This is about who had the better career, NOT who would win in a fight)\n\n");
         prompt.append("2. 1v1 Fight Prediction: Who would WIN A HYPOTHETICAL FIGHT between these two?\n");
-        prompt.append("   - FIRST: Are they in the same weight class? If YES, weight is NOT a factor.\n");
-        prompt.append("   - Consider striking vs grappling matchup based on their stats\n");
-        prompt.append("   - Consider reach advantages if different\n");
-        prompt.append("   - Consider their records and finishing ability\n");
-        prompt.append("   - Consider recent form and momentum\n\n");
+        prompt.append("   🚨 MANDATORY FIRST STEP: Check the weight classes above.\n");
+        prompt.append("   - If DIFFERENT weight classes (2+ apart): The HEAVIER fighter wins. State this clearly.\n");
+        prompt.append("   - If SAME weight class: Then analyze fighting styles, striking vs grappling, reach, records.\n");
+        prompt.append("   🚨 DO NOT let fighter fame, popularity, or legacy influence the 1v1 prediction.\n");
+        prompt.append("   🚨 Physical advantages (size/weight) override technical skill in cross-weight matchups.\n\n");
         prompt.append("3. Fighter 1 Strengths: What are Fighter 1's main strengths based on the data?\n");
         prompt.append("4. Fighter 2 Strengths: What are Fighter 2's main strengths based on the data?\n");
         prompt.append("5. Conclusion: Summarize WHO is better overall AND WHO would win the fight (these may be different fighters).\n\n");
